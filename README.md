@@ -17,4 +17,4 @@ and run as:
 ./exec
 ```
 
-The code for the two functions write_png_file and read_png_file was scavenged from another [Github site](https://gist.github.com/niw/5963798).
+The code for the two functions `write_png_file` and `read_png_file` was scavenged from another [Github site](https://gist.github.com/niw/5963798).
