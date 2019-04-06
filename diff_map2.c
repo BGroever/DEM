@@ -315,15 +315,12 @@ int main(void)
     /* Function to integrate the density and reference
     map fields forward in time by dt */
     void step(double dt){
-      double time = 0;
 
       /* Calculate the upwinded update for the reference map */
 
       /* Do the finite-difference update */
 
       /* Print the current time and the extremal values of density */
-      time += dt;
-      printf("%f\n", time);
 
     }
 
@@ -334,21 +331,23 @@ int main(void)
     for(int l=0; l < 24; l++){
       step(dt/24.0);
     }
-    printf("%f\n", time);
 
+    /* You need to implement the larger time steps too (Python code line
+    145-146), I would do this at the very end since they take a long time
+    to run  */
 
 
 
     /* Use the deformed reference map to plot the density-equalized US map */
     int o2[width][height][z];
+    memset(o2, 255, sizeof(o2)); //This initializes o2 to 255.
 
-    // Set the values of o2 through Python code lines 150 - 158
+    // Set the values of o2 through conversion of Python code lines 150 - 158
 
     for(int y = 0; y < height; y++) {
       png_bytep row = row_pointers[y];
       for(int x = 0; x < width; x++) {
         png_bytep px = &(row[x * 4]);
-        //printf("%d, %d, %d\n", px[0], px[1], px[2]);
         for(int l = 0; l < z; l++){
           px[l] = o2[x][y][l];
         }
