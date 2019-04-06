@@ -332,7 +332,7 @@ int main(void)
       step(dt/24.0);
     }
 
-    /* You need to implement the larger time steps too (Python code line
+    /* @Millie: You need to implement the larger time steps too (Python code line
     145-146), I would do this at the very end since they take a long time
     to run  */
 
@@ -342,8 +342,10 @@ int main(void)
     int o2[width][height][z];
     memset(o2, 255, sizeof(o2)); //This initializes o2 to 255.
 
-    // Set the values of o2 through conversion of Python code lines 150 - 158
+    // @Millie: Set the values of o2 through conversion of Python code lines 150 - 158
 
+    /*This function sets the pixel values to o2. The pixel parameters are
+    global vairables which are defined at the very top. */
     for(int y = 0; y < height; y++) {
       png_bytep row = row_pointers[y];
       for(int x = 0; x < width; x++) {
