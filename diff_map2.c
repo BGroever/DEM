@@ -230,8 +230,10 @@ int main(void)
         rh[m] = atoll(a[0]);
     }
 
-    //TESTING
-    //display c (number of states), d (color bar code) and j (density)
+    /* TESTING
+    c  - string array for the name of the states
+    d  - unique bar code for each state (RGB) = R+256*G+65536*B
+    rh[k] - population density of state c[k] */
     for(int j=0; j<SIZE; j++){
       printf("%s, %d, %f\n", c[j], d[j], rh[j]);
     }
@@ -338,7 +340,20 @@ int main(void)
 
 
     /* Use the deformed reference map to plot the density-equalized US map */
+    int o2[width][height][z];
 
+    // Set the values of o2 through Python code lines 150 - 158
+
+    for(int y = 0; y < height; y++) {
+      png_bytep row = row_pointers[y];
+      for(int x = 0; x < width; x++) {
+        png_bytep px = &(row[x * 4]);
+        //printf("%d, %d, %d\n", px[0], px[1], px[2]);
+        for(int l = 0; l < z; l++){
+          px[l] = o2[x][y][l];
+        }
+      }
+    }
 
     write_png_file("dens_eq.png");
 
