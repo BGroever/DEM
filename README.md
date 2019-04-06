@@ -5,15 +5,16 @@ Density-equalizing maps, also known as cartograms, are an effective communicatio
 The libpng package for I/O can be installed as:
 
 ```Bash
-s = "Bash syntax highlighting"
 sudo apt-get install libpng-dev
 ```
 
 The diff_map2.c can be compiled as:
 ```Bash
-s = "Bash syntax highlighting"
 gcc diff_map2.c -o exec -lm -lpng
 ```
+and run as:
+```Bash
+./exec
+```
 
-
-https://gist.github.com/niw/5963798
+The code for the two functions write_png_file and read_png_file was scavenged from another [Github site](https://gist.github.com/niw/5963798).
