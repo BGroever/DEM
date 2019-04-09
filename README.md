@@ -16,6 +16,15 @@ and installed on Mac OSX as:
 brew install libpng
 ```
 
+The diff_map2.c can be compiled using the command:
+```Bash
+make
+```
+and run as:
+```Bash
+./exec.x
+```
+
 The diff_map2.c can be compiled as:
 ```Bash
 gcc diff_map2.c -o exec -lm -lpng
