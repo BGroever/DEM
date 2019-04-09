@@ -4,10 +4,16 @@ Density-equalizing maps, also known as cartograms, are an effective communicatio
 
 # Usage
 
-The libpng package for I/O can be installed as:
+The libpng package for I/O can be installed on Linux as:
 
 ```Bash
 sudo apt-get install libpng-dev
+```
+
+and installed on Mac OSX as:
+
+```Bash
+brew install libpng
 ```
 
 The diff_map2.c can be compiled as:
