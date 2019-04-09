@@ -3,7 +3,7 @@ CS205 project:    Density equalizing map projections
 Date:             April 6th 2019
 
 Compiler:         gcc diff_map2.c -o exec -lm -lpng
-project members:  Millie Zhou, Lemaire Baptiste, Benedikt Groever
+project members:  Millie Zhou, Baptiste Lemaire, Benedikt Groever
 project goal:     density equalizing map projections
 Input files:      -colchart.txt
                   -density.txt
