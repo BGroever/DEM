@@ -149,9 +149,130 @@ void write_png_file(char *filename)
       free(row_pointers[y]);
     }
     free(row_pointers);
-
     fclose(fp);
 }
+
+
+/* Function to integrate the density and reference
+map fields forward in time by dt */
+void step( double dt, double *time, double (*u)[width][height], double (*cu)[width][height], double (*X)[width][height][2], double (*cX)[width][height][2], double h, double ih2, int width, int height ) {
+
+    double nu = dt/(h*h);
+    double fac = ih2*dt/h;
+    double maxvsq = 0.0;
+
+    // Declaring temp variables used in the loops
+    double *vx = 0;
+    double *vy = 0;
+
+    /* Calculate the upwinded update for the reference map */
+    for (int i=0; i<width; i++) {
+        for (int j=0; j<height; j++) {
+            if ((i>0) && (i<width-1)) {
+                *vx =  (-1.0)*((*u)[i+1][j] + (*u)[i-1][j]) * fac/(*u)[i][j];
+                if (*vx > 0) {
+                    for (int k=0; k<2; k++) {
+                        *cX[i][j][k] = (*vx) * ((-1.0) * (*X)[i][j][k] + (*X)[i-1][j][k]);
+                    }
+                } else {
+                    for (int k=0; k<2; k++) {
+                        (*cX)[i][j][k] = (*vx) * ((*X)[i][j][k] - (*X)[i+1][j][k]);
+                    }
+                }
+            } else {
+                for (int k=0; k<2; k++) {
+                    (*cX)[i][j][k] = 0.0;
+                }
+            }
+            if ( (j>0) && (j<height-1)) {
+                (*vy) = (-1.0) * ((*u)[i][j+1] - (*u)[i][j-1]) * fac/(*u)[i][j];
+                if (*vy >  0) {
+                    for (int k=0; k<2; k++) {
+                        (*cX)[i][j][k] += (*vy) * ((-1.0) * (*X)[i][j][k] + (*X)[i][j-1][k]);
+                    }
+                } else {
+                    for (int k=0; k<2; k++) {
+                        (*cX)[i][j][k] += (*vy) * ((*X)[i][j][k] - (*X)[i][j+1][k]);
+                    }
+                }
+            }
+        }
+    }
+
+    double *temp[width][height][2];
+    for (int i=0; i<width; i++) {
+        for (int j=0; j<height; j++) {
+            for (int k=0; k<2; k++) {
+                *temp[i][j][k] = (*X)[i][j][k] + (*cX)[i][j][k];
+                (*X)[i][j][k] = *temp[i][j][k];
+            }
+        }
+    }
+    free(*temp);
+
+    /* Do the finite-difference update */
+    for (int i=0; i<width; i++) {
+        for (int j=0; j<height; j++) {
+            double tem;
+            int k;
+            if (i>0) {
+                tem = *u[i-1][j];
+                k = 1;
+            } else {
+                tem = 0;
+                k = 0;
+            }
+            if (j>0) {
+                tem += *u[i][j-1];
+                k += 1;
+            }
+            if (j<height-1) {
+                tem += *u[i][j+1];
+                k += 1;
+            }
+            if (i<width-1) {
+                tem += *u[i+1][j];
+                k += 1;
+            }
+            *cu[i][j] = tem - k * (*u)[i][j];
+        }
+    }
+
+    double *temp2[width][height];
+    for (int i=0; i<width; i++) {
+        for (int j=0; j<height; j++) {
+            *temp2[i][j] = (*cu)[i][j] * nu;
+            (*u)[i][j] = *temp2[i][j];
+        }
+    }
+    free(*temp2);
+
+    /* Print the current time and the extremal values of density */
+    *time += dt;
+
+    double minU=0.0;
+    for (int i=0; i<width; i++) {
+        for (int j=0; j<height; j++) {
+            if (*u[i][j] < minU) {
+                minU = *u[i][j];
+            }
+        }
+    }
+
+    double maxU=0.0;
+    for (int i=0; i<width; i++) {
+        for (int j=0; j<height; j++) {
+            if (*u[i][j] > maxU) {
+                maxU = *u[i][j];
+            }
+        }
+    }
+
+    printf("%f, %f, %f, \n", *time, minU, maxU);
+}
+
+
+
 
 // main program for density equalizing map projections
 int main(void)
@@ -310,39 +431,42 @@ int main(void)
     double T  = (height*height+width*width)/12.0;
     int nsteps = (int) ceil(T/dt);
     dt = T/nsteps;
-    printf("Solving to T= %10f using %d timesteps.\n", T, nsteps);
+    printf("Solving to T = %10f using %d timesteps.\n", T, nsteps);
 
-    /* Function to integrate the density and reference
-    map fields forward in time by dt */
-    void step(double dt){
-
-      /* Calculate the upwinded update for the reference map */
-
-      /* Do the finite-difference update */
-
-      /* Print the current time and the extremal values of density */
-
-    }
 
     /* Perform the integration timesteps, using the smaller
     dt for the first few steps to deal with the large velocities
     that initially occur */
-    double time = 0;
-    for(int l=0; l < 24; l++){
-      step(dt/24.0);
+    double time = 0.;
+    for(int l=0; l < 24; l++) {
+      step(dt/24.0, &time, &u, &cu, &X, &cX, h, ih2, width, height);
     }
-
-    /* @Millie: You need to implement the larger time steps too (Python code line
-    145-146), I would do this at the very end since they take a long time
-    to run  */
-
-
 
     /* Use the deformed reference map to plot the density-equalized US map */
     int o2[width][height][z];
     memset(o2, 255, sizeof(o2)); //This initializes o2 to 255.
 
-    // @Millie: Set the values of o2 through conversion of Python code lines 150 - 158
+    for (int i=0; i<width; i++) {
+        for (int j=0; j<height; j++) {
+            for (int k=0; k<z; z++) {
+                int i2=(int) X[i][j][0]+0.5;
+                int j2=(int) X[i][j][1]+0.5;
+                if (i2<0) {
+                    i2 = 0;
+                } else if (i2 > (width-1)) {
+                    i2 = width-1;
+                }
+                if (j2 < 0) {
+                    j2 = 0;
+                } else if (j2>(height-1)) {
+                    j2= height-1;
+                }
+                o2[i][j][k] = o[i2][j2][k];
+            }
+        }
+    }
+
+    free(o2);
 
     /*This function sets the pixel values to o2. The pixel parameters are
     global vairables which are defined at the very top. */
