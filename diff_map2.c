@@ -3,7 +3,7 @@ CS205 project:    Density equalizing map projections
 Date:             April 6th 2019
 
 Compiler:         gcc diff_map2.c -o exec -lm -lpng
-project members:  Millie Zhou, Baptiste Lemaire, Benedikt Groever
+project members:  Millie Zhou, Lemaire Baptiste, Benedikt Groever
 project goal:     density equalizing map projections
 Input files:      -colchart.txt
                   -density.txt
@@ -154,7 +154,6 @@ void write_png_file(char *filename)
     fclose(fp);
 }
 
-<<<<<<< HEAD
 /* Function to integrate the density and reference
 map fields forward in time by dt */
 
@@ -162,30 +161,10 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
 
     double nu = dt/(h*h);
     double fac = ih2*dt/h;
-=======
-
-
-
-
-
-
-
-
-
-
-/* Function to integrate the density and reference
-map fields forward in time by dt */
-void step(double dt, double* time, double* u, double* cu, double* X, double* cX, double h, double ih2, int width, int height) {
-
-    double nu = dt/(h*h);
-    double fac = ih2*dt/h;
-    double maxvsq = 0.0;
->>>>>>> cf7fbfddaad2973a2a77eb47d00905ab16315722
     double vx = 0;
     double vy = 0;
 
     /* Calculate the upwinded update for the reference map */
-<<<<<<< HEAD
     for(int i=0; i < height; i++){
       for(int j=0; j < width; j++){
 
@@ -258,91 +237,10 @@ void step(double dt, double* time, double* u, double* cu, double* X, double* cX,
       for(int j=0; j < width; j++){
         u[i*width+j] += cu[i*width+j] * nu;
       }
-=======
-    for (int i=0; i<width; i++) {
-        for (int j=0; j<height; j++) {
-            if ((i>0) && (i<width-1)) {
-                vx =  ((-1.0) * *(u+(i+1)*height+j) - *(u+(i-1)*height+j)) * fac/ *(u+i*height+j);
-                if (vx > 0) {
-                    for (int k=0; k<2; k++) {
-                        *(cX+i*height+j+(width*height*k)) = vx * ((-1.0) * *(X+i*height+j+(width*height*k)) + *(X+(i-1)*height+j+(width*height*k)));
-                    }
-                } else {
-                    for (int k=0; k<2; k++) {
-                        *(cX+i*height+j+(width*height*k)) = vx * (*(X+i*height+j+(width*height*k)) - *(X+(i+1)*height+j+(width*height*k)));
-                    }
-                }
-            } else {
-                for (int k=0; k<2; k++) {
-                    *(cX+i*height+j+(width*height*k)) = 0.0;
-                }
-            }
-            if ( (j>0) && (j<height-1)) {
-                vy = (-1.0) * (*(u+i*height+j+1) - *(u+i*height+j-1)) * fac/ *(u+i*height+j);
-
-                if (vy >  0) {
-                    for (int k=0; k<2; k++) {
-                        *(cX+i*height+j+(width*height*k)) += vy * ((-1.0) * *(X+i*height+j+(width*height*k)) + *(X+i*height+j-1+(width*height*k)));
-                    }
-                } else {
-                    for (int k=0; k<2; k++) {
-                        *(cX+i*height+j+(width*height*k)) += vy * *(X+i*height+j+(width*height*k)) - *(X+i*height+j+1+(width*height*k));
-                    }
-                }
-            }
-        }
-    }
-
-    double temp[width][height][2];
-    for (int i=0; i<width; i++) {
-        for (int j=0; j<height; j++) {
-            for (int k=0; k<2; k++) {
-                temp[i][j][k] = *(X+i*height+j+(width*height*k)) + *(cX+i*height+j+(width*height*k));
-                *(X+i*height+j+(width*height*k)) = temp[i][j][k];
-            }
-        }
-    }
-
-    /* Do the finite-difference update */
-    for (int i=0; i<width; i++) {
-        for (int j=0; j<height; j++) {
-            double tem;
-            int k;
-            if (i>0) {
-                tem = *(u+(i-1)*height+j);
-                k = 1;
-            } else {
-                tem = 0;
-                k = 0;
-            }
-            if (j>0) {
-                tem += *(u+i*height+j-1);
-                k += 1;
-            }
-            if (j<height-1) {
-                tem += *(u+i*height+j+1);
-                k += 1;
-            }
-            if (i<width-1) {
-                tem += *(u+(i+1)*height+j);
-                k += 1;
-            }
-            *(cu+i*height+j)  = tem - k * *(u+i*height+j);
-        }
-    }
-
-    double temp2[width][height];
-    for (int i=0; i<width; i++) {
-        for (int j=0; j<height; j++) {
-            temp2[i][j] = *(cu+i*height+j) * nu;
-            *(u+i*height+j) += temp2[i][j];
-        }
->>>>>>> cf7fbfddaad2973a2a77eb47d00905ab16315722
     }
 
     /* Print the current time and the extremal values of density */
     *time += dt;
-<<<<<<< HEAD
     double minU=16777215;
     for (int i=0; i<height; i++) {
       for (int j=0; j<width; j++) {
@@ -364,38 +262,6 @@ void step(double dt, double* time, double* u, double* cu, double* X, double* cX,
     printf("%f, %f, %f \n", *time, minU, maxU);
 }
 
-=======
-
-    double minU=0.0;
-    for (int i=0; i<width; i++) {
-        for (int j=0; j<height; j++) {
-            if (*(cu+i*height+j) < minU) {
-                minU = *(cu+i*height+j);
-            }
-        }
-    }
-
-    double maxU=0.0;
-    for (int i=0; i<width; i++) {
-        for (int j=0; j<height; j++) {
-            if (*(cu+i*height+j) > maxU) {
-                maxU = *(cu+i*height+j);
-            }
-        }
-    }
-
-    printf("%f, %f, %f \n", *time, minU, maxU);
-
-}
-
-
-
-
-
-
-
-
->>>>>>> cf7fbfddaad2973a2a77eb47d00905ab16315722
 // main program for density equalizing map projections
 int main(void)
 {
@@ -563,26 +429,11 @@ int main(void)
     dt = T/nsteps;
     printf("Solving to T= %10f using %d timesteps.\n", T, nsteps);
 
-<<<<<<< HEAD
-=======
-    /* Function to integrate the density and reference
-    map fields forward in time by dt */
-    //void step(double dt){
-
-      /* Calculate the upwinded update for the reference map */
-
-      /* Do the finite-difference update */
-
-      /* Print the current time and the extremal values of density */
-
-  //}
->>>>>>> cf7fbfddaad2973a2a77eb47d00905ab16315722
 
     /* Perform the integration timesteps, using the smaller
     dt for the first few steps to deal with the large velocities
     that initially occur */
     double time = 0;
-<<<<<<< HEAD
     for(int l=0; l < 24; l++){
       step(dt/24.0, &time, u, cu, X, cX, h, ih2);
     }
@@ -592,13 +443,6 @@ int main(void)
 
     //int i = 70;
     //int j = 150;
-=======
-    //for(int l=0; l < 24; l++){
-    step(dt, &time, &u, &cu, &X, &cX, h, ih2, width, height);
-    //}
-
-    printf("\ndt:%f\t h:%f\t ih2:%f\t width:%d\t height:%d\n", dt, h, ih2, width, height);
->>>>>>> cf7fbfddaad2973a2a77eb47d00905ab16315722
 
     //printf("for (%d, %d) X: %f, %f\n", i, j, X[i*width*2+j*2+0], X[i*width*2+j*2+1]);
     //printf("for (%d, %d) u: %f\n", i, j, u[i*width+j]);
@@ -630,31 +474,8 @@ int main(void)
         }
     }
 
-<<<<<<< HEAD
     //printf("%d, %d\n", i2,j2);
 
-=======
-    // @Millie: Set the values of o2 through conversion of Python code lines 150 - 158
-    for (int i=0; i<width; i++) {
-        for (int j=0; j<height; j++) {
-            for (int k=0; k<z; z++) {
-                int i2=(int) X[i][j][0]+0.5;
-                int j2=(int) X[i][j][1]+0.5;
-                if (i2<0) {
-                    i2 = 0;
-                } else if (i2 > (width-1)) {
-                    i2 = width-1;
-                }
-                if (j2 < 0) {
-                    j2 = 0;
-                } else if (j2>(height-1)) {
-                    j2= height-1;
-                }
-                o2[i][j][k] = o[i2][j2][k];
-            }
-        }
-    }
->>>>>>> cf7fbfddaad2973a2a77eb47d00905ab16315722
     /*This function sets the pixel values to o2. The pixel parameters are
     global vairables which are defined at the very top. */
 
