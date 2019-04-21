@@ -2,7 +2,7 @@
 cxx=gcc
 
 # Compilation flags
-cflags=-pedantic -Wall -O3
+cflags=-pedantic -Wall -O3 -DUSE_CLOCK
 
 # Flags for PNG library
 png_lflags=-lm -lpng
@@ -16,4 +16,3 @@ clean:
 
 exec.x: diff_map2.c
 	$(cxx) $(cflags) -o $@ $^ $(png_lflags)
-
