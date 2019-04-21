@@ -16,6 +16,8 @@ Output file:      -dens_eq.png
 #include <stdlib.h>
 #include <png.h>
 #include <math.h>
+#include <time.h>
+#include "timing.h"
 #define SIZE 50
 
 /* helper functions (which are not needed in python prototype version) */
@@ -265,6 +267,10 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
 // main program for density equalizing map projections
 int main(void)
 {
+    /* timing_t tstart, tend; */
+    timing_t tstart, tend;
+    get_time(&tstart);
+
     /* Read in the color values for each state */
     char const* const fileName = "colchart.txt";
     FILE* file = fopen(fileName, "r");
@@ -349,9 +355,12 @@ int main(void)
     }*/
 
     /* Read in the undeformed US map */
-    read_png_file("usa_sm.png");
-    int z = 3;
+    read_png_file("usa_vs.png");
+    get_time(&tend);
+    printf("Elapsed time load data: %g s\n", timespec_diff(tstart, tend));
 
+    get_time(&tstart);
+    int z = 3;
     int *o = malloc(height*width*z * sizeof(int));
     for(int i = 0; i < height; i++) {
       png_bytep row = row_pointers[i];
@@ -369,9 +378,7 @@ int main(void)
 
     /* Scan the image to set the density field in the states.
     In addition, calculate the average density. */
-    //double  u[height*width];
     double *u = malloc(height*width * sizeof(double));
-    //double cu[height*width];
     double *cu = malloc(height*width * sizeof(double));
     double srho = 0.0;
     int npts = 0;
@@ -409,9 +416,7 @@ int main(void)
     }
 
     /* Initialize the reference map coordinates */
-    //double  X[height*width*2];
     double *X = malloc(height*width*2 * sizeof(double));
-    //double cX[height*width*2];
     double *cX = malloc(height*width*2 * sizeof(double));
     for(int i=0; i < height; i++){
       for(int j=0; j < width; j++){
@@ -429,7 +434,10 @@ int main(void)
     dt = T/nsteps;
     printf("Solving to T= %10f using %d timesteps.\n", T, nsteps);
 
+    get_time(&tend);
+    printf("Elapsed time pre-processing: %g s\n", timespec_diff(tstart, tend));
 
+    get_time(&tstart);
     /* Perform the integration timesteps, using the smaller
     dt for the first few steps to deal with the large velocities
     that initially occur */
@@ -438,8 +446,12 @@ int main(void)
       step(dt/24.0, &time, u, cu, X, cX, h, ih2);
     }
     for(int l=1; l < nsteps;l++){
-      step(dt/24.0, &time, u, cu, X, cX, h, ih2);
+      step(dt, &time, u, cu, X, cX, h, ih2);
     }
+
+    get_time(&tend);
+    printf("Elapsed time computing: %g s\n", timespec_diff(tstart, tend));
+
 
     //int i = 70;
     //int j = 150;
@@ -447,6 +459,7 @@ int main(void)
     //printf("for (%d, %d) X: %f, %f\n", i, j, X[i*width*2+j*2+0], X[i*width*2+j*2+1]);
     //printf("for (%d, %d) u: %f\n", i, j, u[i*width+j]);
 
+    get_time(&tstart);
     /* Use the deformed reference map to plot the density-equalized US map */
     int i2;
     int j2;
@@ -490,7 +503,14 @@ int main(void)
       }
     }
 
+    get_time(&tend);
+    printf("Elapsed time post-processing: %g s\n", timespec_diff(tstart, tend));
+
+    get_time(&tstart);
     write_png_file("dens_eq.png");
+    get_time(&tend);
+    printf("Elapsed time saving: %g s\n", timespec_diff(tstart, tend));
+
 
     return 0;
 
