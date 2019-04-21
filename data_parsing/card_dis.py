@@ -28,11 +28,11 @@ year2014 = counties.map(lambda x: str(x[9].split(' ')[0].replace('"', '') +' '+x
 
 
 
-year1980.saveAsTextFile('year1980.txt')
-year1985.saveAsTextFile('year1985.txt')
-year1990.saveAsTextFile('year1990.txt')
-year1995.saveAsTextFile('year1995.txt')
-year2000.saveAsTextFile('year2000.txt')
-year2005.saveAsTextFile('year2005.txt')
-year2010.saveAsTextFile('year2010.txt')
-year2014.saveAsTextFile('year2014.txt')
+year1980.saveAsTextFile('data_1980.txt')
+year1985.saveAsTextFile('data_1985.txt')
+year1990.saveAsTextFile('data_1990.txt')
+year1995.saveAsTextFile('data_1995.txt')
+year2000.saveAsTextFile('data_2000.txt')
+year2005.saveAsTextFile('data_2005.txt')
+year2010.saveAsTextFile('data_2010.txt')
+year2014.saveAsTextFile('data_2014.txt')
