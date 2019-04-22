@@ -19,11 +19,13 @@ Output file:      -dens_eq.png
 #include <time.h>
 #include "timing.h"
 #include <omp.h>
+
+// Number of states/entities to calculates:
 #define SIZE 50
 
-/* helper functions (which are not needed in python prototype version) */
+/** helper functions (which are not needed in python prototype version). */
 
-//Find index of string na in string array c
+/** Finds the index of string na in string array c. */
 static int getStringIndex(char (*c)[256], char *na)
 {
     for(int j=0; j < SIZE; j++){
@@ -34,7 +36,7 @@ static int getStringIndex(char (*c)[256], char *na)
     return 0;
 }
 
-//Find index of el in int array c
+/** Finds index of el in int array c. */
 static int getIntIndex(int *c, int  el)
 {
     for(int j=0; j < SIZE; j++){
@@ -51,7 +53,7 @@ png_byte color_type;
 png_byte bit_depth;
 png_bytep *row_pointers;
 
-//Reader of png file
+/** Reader of png file. */
 void read_png_file(char *filename)
 {
     FILE *fp = fopen(filename, "rb");
@@ -111,7 +113,7 @@ void read_png_file(char *filename)
     fclose(fp);
 }
 
-//Writer of png file
+/** Writer of png file. */
 void write_png_file(char *filename)
 {
     //int y;
@@ -157,8 +159,8 @@ void write_png_file(char *filename)
     fclose(fp);
 }
 
-/* Function to integrate the density and reference
-map fields forward in time by dt */
+/** Function to integrate the density and reference
+  * map fields forward in time by dt. */
 
 void step(double dt, double *time, double *u, double *cu, double *X, double *cX, double h, double ih2) {
 
@@ -167,7 +169,7 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
     double vx = 0;
     double vy = 0;
 
-    /* Calculate the upwinded update for the reference map */
+    /** Calculate the upwinded update for the reference map. */
     for(int i=0; i < height; i++){
       for(int j=0; j < width; j++){
 
@@ -265,14 +267,14 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
     printf("%f, %f, %f \n", *time, minU, maxU);
 }
 
-// main program for density equalizing map projections
+/** Main program for density equalizing map projections. */
 int main(void)
 {
-    /** timing_t tstart, tend; */
+    // timing_t tstart, tend; 
     timing_t tstart, tend;
     get_time(&tstart);
 
-    /** Read in the color values for each state. */
+    // Read in the color values for each state. 
     char const* const fileName = "colchart.txt";
     FILE* file = fopen(fileName, "r");
     char line[256];
@@ -291,7 +293,7 @@ int main(void)
             i = i + 1;
         }
 
-        /** Read in the three color channels. */
+        // Read in the three color channels. 
         int re = atoi(a[0]);
         int gr = atoi(a[1]);
         int bl = atoi(a[2]);
@@ -316,7 +318,7 @@ int main(void)
 
     fclose(file);
 
-    /** Read in the population densities for each state. */
+    // Read in the population densities for each state. 
     char const* const fileName2 = "density.txt";
     FILE* file2 = fopen(fileName2, "r");
     double rh[SIZE] = {0};
