@@ -18,6 +18,7 @@ Output file:      -dens_eq.png
 #include <math.h>
 #include <time.h>
 #include "timing.h"
+#include <omp.h>
 #define SIZE 50
 
 /* helper functions (which are not needed in python prototype version) */
@@ -267,11 +268,11 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
 // main program for density equalizing map projections
 int main(void)
 {
-    /* timing_t tstart, tend; */
+    /** timing_t tstart, tend; */
     timing_t tstart, tend;
     get_time(&tstart);
 
-    /* Read in the color values for each state */
+    /** Read in the color values for each state. */
     char const* const fileName = "colchart.txt";
     FILE* file = fopen(fileName, "r");
     char line[256];
@@ -290,13 +291,13 @@ int main(void)
             i = i + 1;
         }
 
-        /* Read in the three color channels */
+        /** Read in the three color channels. */
         int re = atoi(a[0]);
         int gr = atoi(a[1]);
         int bl = atoi(a[2]);
 
-        /* Read in the name of the state, taking care to handle to
-        states space in them */
+        /** Read in the name of the state, taking care to handle to
+          * states space in them. */
         char na[256];
         if(*a[4]=='\0'){
             strcpy(na, a[3]);
@@ -307,7 +308,7 @@ int main(void)
         }
         strcpy(c[k], na);
 
-        /* Encode the color into a single integer, and store the information */
+        /** Encode the color into a single integer, and store the information. */
         int nu = re+256*gr+65536*bl;
         d[k] = nu;
         k+=1;
@@ -315,7 +316,7 @@ int main(void)
 
     fclose(file);
 
-    /* Read in the population densities for each state */
+    /** Read in the population densities for each state. */
     char const* const fileName2 = "density.txt";
     FILE* file2 = fopen(fileName2, "r");
     double rh[SIZE] = {0};
@@ -345,16 +346,16 @@ int main(void)
         rh[m] = atoll(a[0]);
     }
 
-    /* TESTING
-    c  - string array for the name of the states
-    d  - unique bar code for each state (RGB) = R+256*G+65536*B
-    rh[k] - population density of state c[k] */
-    /*
-    for(int j=0; j<SIZE; j++){
+    /** TESTING
+      * c  - string array for the name of the states
+      * d  - unique bar code for each state (RGB) = R+256*G+65536*B
+      * rh[k] - population density of state c[k]. */
+    /**
+      for(int j=0; j<SIZE; j++){
       printf("%s, %d, %f\n", c[j], d[j], rh[j]);
     }*/
 
-    /* Read in the undeformed US map */
+    /** Read in the undeformed US map. */
     read_png_file("usa_vs.png");
     get_time(&tend);
     printf("Elapsed time load data: %g s\n", timespec_diff(tstart, tend));
@@ -372,12 +373,12 @@ int main(void)
       }
     }
 
-    /* Grid spacing */
+    /** Grid spacing. */
     double h   = 1.0;
     double ih2 = 0.5/h;
 
-    /* Scan the image to set the density field in the states.
-    In addition, calculate the average density. */
+    /** Scan the image to set the density field in the states.
+      * In addition, calculate the average density. */
     double *u = malloc(height*width * sizeof(double));
     double *cu = malloc(height*width * sizeof(double));
     double srho = 0.0;
@@ -400,8 +401,8 @@ int main(void)
       }
     }
 
-    /* Re-scan over the image to set the average density
-    in regions outside the states */
+    /** Re-scan over the image to set the average density
+      * in regions outside the states. */
     double rhobar=srho/npts;
     printf("Avg. rho: %f\n", rhobar);
     for(int i=0; i < height; i++){
@@ -415,7 +416,7 @@ int main(void)
       }
     }
 
-    /* Initialize the reference map coordinates */
+    /** Initialize the reference map coordinates. */
     double *X = malloc(height*width*2 * sizeof(double));
     double *cX = malloc(height*width*2 * sizeof(double));
     for(int i=0; i < height; i++){
@@ -427,7 +428,7 @@ int main(void)
 
     //printf("x: %f, y: %f\n", X[100*width*2+50*2+0], X[100*width*2+50*2+1]);
 
-    /* Calculate timestep size */
+    /** Calculate timestep size. */
     double dt = 0.24*h*h;
     double T  = (height*height+width*width)/12.0;
     int nsteps = (int) ceil(T/dt);
@@ -438,9 +439,9 @@ int main(void)
     printf("Elapsed time pre-processing: %g s\n", timespec_diff(tstart, tend));
 
     get_time(&tstart);
-    /* Perform the integration timesteps, using the smaller
-    dt for the first few steps to deal with the large velocities
-    that initially occur */
+    /** Perform the integration timesteps, using the smaller
+      * dt for the first few steps to deal with the large velocities
+      * that initially occur. */
     double time = 0;
     for(int l=0; l < 24; l++){
       step(dt/24.0, &time, u, cu, X, cX, h, ih2);
@@ -460,7 +461,7 @@ int main(void)
     //printf("for (%d, %d) u: %f\n", i, j, u[i*width+j]);
 
     get_time(&tstart);
-    /* Use the deformed reference map to plot the density-equalized US map */
+    /** Use the deformed reference map to plot the density-equalized US map. */
     int i2;
     int j2;
     //int o2[height*width*z];
@@ -489,8 +490,8 @@ int main(void)
 
     //printf("%d, %d\n", i2,j2);
 
-    /*This function sets the pixel values to o2. The pixel parameters are
-    global vairables which are defined at the very top. */
+    /** This function sets the pixel values to o2. The pixel parameters are
+      * global vairables which are defined at the very top. */
 
     for(int i = 0; i < height; i++) {
       png_bytep row = row_pointers[i];
