@@ -14,7 +14,6 @@ state_fips = {}
 for line in dataS:
     state, fips = line.split('\t')
     state_fips[state]=int(fips)
-print(state_fips)
 
 FinalRef = ''
 counter1 = 0
@@ -75,27 +74,58 @@ for count, line in enumerate(dataF):
     if not found:
         if cty == 'Rio Grande':
             FinalRef += line.replace("\n","") + '\t' + '(255,247,214)\n'
+            counter2+=1
         elif cty == 'Clayton':
             FinalRef += line.replace("\n","") + '\t' + '(255,233,98)\n'
+            counter2 += 1
         elif cty == 'Greenup':
             FinalRef += line.replace("\n","") + '\t' + '(255,218,108)\n'
+            counter2 += 1
         elif cty == 'LaSalle':
             FinalRef += line.replace("\n","") + '\t' + '(255,214,42)\n'
+            counter2 += 1
         elif cty == 'Lake of the Woods':
             FinalRef += line.replace("\n","") + '\t' + '(255,210,106)\n'
+            counter2 += 1
         elif cty == 'Red Lake':
             FinalRef += line.replace("\n","") + '\t' + '(255,210,76)\n'
+            counter2 += 1
         elif cty == 'Jefferson Davis':
             FinalRef += line.replace("\n","") + '\t' + '(255,133,248)\n'
+            counter2 += 1
         elif cty == 'Scotts Bluff':
             FinalRef += line.replace("\n","") + '\t' + '(255,191,0)\n'
+            counter2 += 1
         elif cty == 'Allegany':
             FinalRef += line.replace("\n","") + '\t' + '(255,212,24)\n'
+            counter2 += 1
         elif cty == 'Saint Lawrence':
             FinalRef += line.replace("\n","") + '\t' + '(255,133,248)\n'
-
+            counter2 += 1
+        elif cty == 'Adams':
+            FinalRef += line.replace("\n","") + '\t' + '(255,232,224)\n'
+            counter2 += 1
+        elif cty == 'Williamson':
+            FinalRef += line.replace("\n","") + '\t' + '(255,228,78)\n'
+            counter2 += 1
+        elif cty == 'Chesterfield':
+            FinalRef += line.replace("\n","") + '\t' + '(255,172,254)\n'
+            counter2 += 1
+        elif cty == 'Jackson':
+            FinalRef += line.replace("\n","") + '\t' + '(255,157,234)\n'
+            counter2 += 1
+        elif cty == 'Robertson':
+            FinalRef += line.replace("\n","") + '\t' + '(255,157,234)\n'
+            counter2 += 1
+        elif cty == 'Charlottesville':
+            FinalRef += line.replace("\n","") + '\t' + '(255,152,244)\n'
+            counter2 += 1
+        elif cty == 'Manassas Park':
+            FinalRef += line.replace("\n","") + '\t' + '(255,151,60)\n'
+            counter2 += 1
         else:
             print("Not Found:", line.replace("\n",""))
+
 
 with open("MapReference.txt", "w") as temp_file:
     temp_file.write(FinalRef)
