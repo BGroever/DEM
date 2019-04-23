@@ -317,7 +317,7 @@ Windham 	9015
 Kent 	10001
 New Castle 	10003
 Sussex 	10005
-Washington__DC
+Washington 	11001
 Alachua 	12001
 Baker 	12003
 Bay 	12005
