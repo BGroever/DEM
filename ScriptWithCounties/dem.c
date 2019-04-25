@@ -3,11 +3,11 @@ CS205 project:    Density equalizing map projections
 Date:             April 6th 2019
 
 Compiler:         gcc diff_map2.c -o exec -lm -lpng
-project members:  Millie Zhou, Lemaire Baptiste, Benedikt Groever
+project members:  Millie Zhou, Baptiste Lemaire, Benedikt Groever
 project goal:     density equalizing map projections
-Input files:      -colchart.txt
-                  -density.txt
-                  -usa_vs.png
+Input files:      -colchart_counties.txt
+                  -pop_per_county.txt
+                  -uscounties.png
 Output file:      -dens_eq.png
 */
 
@@ -275,7 +275,7 @@ int main(void)
     get_time(&tstart);
 
     // Read in the color values for each state. 
-    char const* const fileName = "colchart.txt";
+    char const* const fileName = "colchart_counties.txt";
     FILE* file = fopen(fileName, "r");
     char line[256];
     int d[SIZE] = {0};
@@ -319,7 +319,7 @@ int main(void)
     fclose(file);
 
     // Read in the population densities for each state.
-    char const* const fileName2 = "density.txt";
+    char const* const fileName2 = "pop_per_county.txt";
     FILE* file2 = fopen(fileName2, "r");
     double rh[SIZE] = {0};
 
@@ -358,7 +358,7 @@ int main(void)
     //}
 
     // Reads in the undeformed US map.
-    read_png_file("usa_vs.png");
+    read_png_file("uscounties.png");
     get_time(&tend);
     printf("Elapsed time load data: %g s\n", timespec_diff(tstart, tend));
 
