@@ -1,8 +1,8 @@
 # C compiler
-cxx=gcc
+cxx=gcc-8
 
 # Compilation flags
-cflags=-pedantic -Wall -O3 -DUSE_CLOCK
+cflags=-fopenmp -pedantic -Wall -O3 -I/usr/local/include -L/usr/local/lib #-DUSE_CLOCK
 
 # Flags for PNG library
 png_lflags=-lm -lpng

@@ -16,8 +16,8 @@ Output file:      -dens_eq.png
 #include <stdlib.h>
 #include <png.h>
 #include <math.h>
-#include <time.h>
-#include "timing.h"
+//#include <time.h>
+//#include "timing.h"
 #include <omp.h>
 
 // Number of states/entities to calculates:
@@ -271,8 +271,9 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
 int main(void)
 {
     // timing_t tstart, tend; 
-    timing_t tstart, tend;
-    get_time(&tstart);
+    //timing_t tstart, tend;
+    //get_time(&tstart);
+    double tstart=omp_get_wtime(), tend;
 
     // Read in the color values for each state. 
     char const* const fileName = "colchart_counties.txt";
@@ -359,10 +360,13 @@ int main(void)
 
     // Reads in the undeformed US map.
     read_png_file("uscounties.png");
-    get_time(&tend);
-    printf("Elapsed time load data: %g s\n", timespec_diff(tstart, tend));
+    //get_time(&tend);
+    tend = omp_get_wtime();
+    printf("Elapsed time load data: %f s\n", tend-tstart); //timespec_diff(tstart, tend));
 
-    get_time(&tstart);
+    //get_time(&tstart);
+    tstart = omp_get_wtime();
+
     int z = 3;
     int *o = malloc(height*width*z * sizeof(int));
     for(int i = 0; i < height; i++) {
@@ -437,10 +441,12 @@ int main(void)
     dt = T/nsteps;
     printf("Solving to T= %10f using %d timesteps.\n", T, nsteps);
 
-    get_time(&tend);
-    printf("Elapsed time pre-processing: %g s\n", timespec_diff(tstart, tend));
+    //get_time(&tend);
+    tend = omp_get_wtime();
+    printf("Elapsed time pre-processing: %f s\n", tend-tstart); //, timespec_diff(tstart, tend));
 
-    get_time(&tstart);
+    //get_time(&tstart);
+    tstart = omp_get_wtime();
     // Perform the integration timesteps, using the smaller
     // dt for the first few steps to deal with the large velocities
     // that initially occur.
@@ -452,8 +458,9 @@ int main(void)
       step(dt, &time, u, cu, X, cX, h, ih2);
     }
 
-    get_time(&tend);
-    printf("Elapsed time computing: %g s\n", timespec_diff(tstart, tend));
+    //get_time(&tend);
+    tend = omp_get_wtime();
+    printf("Elapsed time computing: %f s\n", tend-tstart); // timespec_diff(tstart, tend));
 
 
     //int i = 70;
@@ -462,7 +469,9 @@ int main(void)
     //printf("for (%d, %d) X: %f, %f\n", i, j, X[i*width*2+j*2+0], X[i*width*2+j*2+1]);
     //printf("for (%d, %d) u: %f\n", i, j, u[i*width+j]);
 
-    get_time(&tstart);
+    //get_time(&tstart);
+    tstart = omp_get_wtime();
+
     // Use the deformed reference map to plot the density-equalized US map.
     int i2;
     int j2;
@@ -506,13 +515,16 @@ int main(void)
       }
     }
 
-    get_time(&tend);
-    printf("Elapsed time post-processing: %g s\n", timespec_diff(tstart, tend));
+    //get_time(&tend);
+    tend = omp_get_wtime();
+    printf("Elapsed time post-processing: %f s\n", tend-tstart); // timespec_diff(tstart, tend));
 
-    get_time(&tstart);
+    //get_time(&tstart);
+    tstart = omp_get_wtime();
     write_png_file("dens_eq.png");
-    get_time(&tend);
-    printf("Elapsed time saving: %g s\n", timespec_diff(tstart, tend));
+    //get_time(&tend);
+    tend = omp_get_wtime();
+    printf("Elapsed time saving: %f s\n", tend-tstart); //timespec_diff(tstart, tend));
 
 
     return 0;
