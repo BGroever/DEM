@@ -21,15 +21,15 @@ Output file:      -dens_eq.png
 #include <omp.h>
 
 // Number of states/entities to calculates:
-#define SIZE 3142
+#define SIZE 3146
 
 /** helper functions (which are not needed in python prototype version). */
 
 /** Finds the index of string na in string array c. */
-static int getStringIndex(char (*c)[256], char *na)
+static int getStringIndex(int* c, int na)
 {
     for(int j=0; j < SIZE; j++){
-        if(strcmp(na,c[j]) == 0){
+        if(c[j] == na){
           return j;
         }
     }
@@ -280,13 +280,14 @@ int main(void)
     FILE* file = fopen(fileName, "r");
     char line[256];
     int d[SIZE] = {0};
-    char c[SIZE][256] = {{'\0'}};
+    //char c[SIZE][256] = {{'\0'}};
+    int c[SIZE] = {0};
     int k=0;
 
     while (fgets(line, sizeof(line), file)) {
         char *token = strtok(strtok(line,"\n"), " ");
         int i = 0;
-        char a[5][256] = {{'\0'},{'\0'},{'\0'},{'\0'},{'\0'}};
+        char a[4][256] = {{'\0'},{'\0'},{'\0'},{'\0'}};
         while (token != NULL)
         {
             strcpy(a[i], token);
@@ -298,18 +299,20 @@ int main(void)
         int re = atoi(a[0]);
         int gr = atoi(a[1]);
         int bl = atoi(a[2]);
-
+        int na = atoi(a[3]);
+        c[k]=na;
+        
         // Read in the name of the state, taking care to handle to
         // states space in them.
-        char na[256];
-        if(*a[4]=='\0'){
-            strcpy(na, a[3]);
-        }else{
-            strcpy(na, a[3]);
-            strcat(na, " ");
-            strcat(na, a[4]);
-        }
-        strcpy(c[k], na);
+        //char na[256];
+        //if(*a[4]=='\0'){
+        //    strcpy(na, a[3]);
+        //}else{
+        //    strcpy(na, a[3]);
+        //    strcat(na, " ");
+        //    strcat(na, a[4]);
+        //}
+        //strcpy(c[k], na);
 
         // Encode the color into a single integer, and store the information.
         int nu = re+256*gr+65536*bl;
@@ -326,7 +329,7 @@ int main(void)
 
     while (fgets(line, sizeof(line), file2)) {
 
-        char *token = strtok(strtok(line,"\n"), " ");
+        char *token = strtok(strtok(line,"\n"), "\t");
         int i = 0;
         char a[3][256] = {{'\0'},{'\0'},{'\0'}};
 
@@ -336,15 +339,15 @@ int main(void)
             token = strtok(NULL, " ");
             i = i + 1;
         }
-
-        char na[256];
-        if(*a[2]=='\0'){
-            strcpy(na, a[1]);
-        }else{
-            strcpy(na, a[1]);
-            strcat(na, " ");
-            strcat(na, a[2]);
-        }
+        int na = atoll(a[1]);
+        //char na[256];
+        //if(*a[2]=='\0'){
+        //    strcpy(na, a[1]);
+        //}else{
+        //    strcpy(na, a[1]);
+        //    strcat(na, " ");
+        //    strcat(na, a[2]);
+        //}
         int m = getStringIndex(c, na);
         rh[m] = atoll(a[0]);
     }
@@ -378,7 +381,7 @@ int main(void)
         o[i*width*z+j*z+2] = py[2];
       }
     }
-
+    printf("Here");
     // Grid spacing.
     double h   = 1.0;
     double ih2 = 0.5/h;
@@ -402,11 +405,14 @@ int main(void)
           npts+=1;
         }
         else if(co != 16777215){
-          abort();
+          printf("Mayday Mayday, we are aborting! Index=%d and Co=%d\n",index,co);
+          printf("i=%d\tj=%d\n",i,j);
+          //abort();
         }
       }
     }
 
+    printf("Past here");
     // Re-scan over the image to set the average density
     // in regions outside the states.
     double rhobar=srho/npts;
