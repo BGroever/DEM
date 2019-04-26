@@ -6,7 +6,7 @@ Compiler:         gcc diff_map2.c -o exec -lm -lpng
 project members:  Millie Zhou, Baptiste Lemaire, Benedikt Groever
 project goal:     density equalizing map projections
 Input files:      -colchart_counties.txt
-                  -pop_per_county.txt
+                  -den_per_county.txt
                   -uscounties.png
 Output file:      -dens_eq.png
 */
@@ -16,8 +16,6 @@ Output file:      -dens_eq.png
 #include <stdlib.h>
 #include <png.h>
 #include <math.h>
-//#include <time.h>
-//#include "timing.h"
 #include <omp.h>
 
 // Number of states/entities to calculates:
@@ -300,7 +298,7 @@ int main(void)
         int bl = atoi(a[2]);
         int na = atoi(a[3]);
         c[k]=na;
-        
+
         // Read in the name of the state, taking care to handle to
         // states space in them.
         //char na[256];
@@ -322,7 +320,7 @@ int main(void)
     fclose(file);
 
     // Read in the population densities for each state.
-    char const* const fileName2 = "pop_per_county.txt";
+    char const* const fileName2 = "den_per_county.txt";
     FILE* file2 = fopen(fileName2, "r");
     double rh[SIZE] = {0};
 
@@ -348,7 +346,8 @@ int main(void)
         //    strcat(na, a[2]);
         //}
         int m = getStringIndex(c, na);
-        rh[m] = atoll(a[0]);
+        rh[m] = atof(a[0]);
+        if (rh[m]==0) printf("Density of 0.0 for fips=%d\n",na);
     }
 
     // TESTING
@@ -447,13 +446,13 @@ int main(void)
     //get_time(&tend);
     tend = omp_get_wtime();
     printf("Elapsed time pre-processing: %f s\n", tend-tstart); //, timespec_diff(tstart, tend));
-    for(int i=0; i < height; i++){
-      for(int j=0; j < width; j++){
-        if (u[i*width + j]==0){
-          printf("Zero observed for i=%d j=%d\n",i,j);
-        }
-      }
-    }
+    //for(int i=0; i < height; i++){
+    //  for(int j=0; j < width; j++){
+    //    if (u[i*width + j]==0){
+    //      printf("Zero observed for i=%d j=%d\n",i,j);
+    //    }
+    //  }
+    //}
     //get_time(&tstart);
     tstart = omp_get_wtime();
     // Perform the integration timesteps, using the smaller
@@ -464,6 +463,7 @@ int main(void)
     for(int l=0; l < 24; l++){
       step(dt/24.0, &time, u, cu, X, cX, h, ih2);
     }
+    nsteps=10;
     for(int l=1; l < nsteps;l++){
       step(dt, &time, u, cu, X, cX, h, ih2);
     }
