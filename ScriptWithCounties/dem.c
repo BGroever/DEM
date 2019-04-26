@@ -405,7 +405,7 @@ int main(void)
         else if(co != 16777215){
           printf("Mayday Mayday, we are aborting! Index=%d and Co=%d\n",index,co);
           printf("i=%d\tj=%d\n",i,j);
-          //abort();
+          abort();
         }
       }
     }
@@ -447,12 +447,19 @@ int main(void)
     //get_time(&tend);
     tend = omp_get_wtime();
     printf("Elapsed time pre-processing: %f s\n", tend-tstart); //, timespec_diff(tstart, tend));
-
+    for(int i=0; i < height; i++){
+      for(int j=0; j < width; j++){
+        if (u[i*width + j]==0){
+          printf("Zero observed for i=%d j=%d\n",i,j);
+        }
+      }
+    }
     //get_time(&tstart);
     tstart = omp_get_wtime();
     // Perform the integration timesteps, using the smaller
     // dt for the first few steps to deal with the large velocities
     // that initially occur.
+
     double time = 0;
     for(int l=0; l < 24; l++){
       step(dt/24.0, &time, u, cu, X, cX, h, ih2);
