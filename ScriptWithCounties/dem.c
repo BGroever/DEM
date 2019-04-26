@@ -463,7 +463,7 @@ int main(void)
     for(int l=0; l < 24; l++){
       step(dt/24.0, &time, u, cu, X, cX, h, ih2);
     }
-    //nsteps=10;
+    nsteps=2000;
     for(int l=1; l < nsteps;l++){
       step(dt, &time, u, cu, X, cX, h, ih2);
     }
