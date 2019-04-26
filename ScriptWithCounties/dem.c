@@ -21,7 +21,7 @@ Output file:      -dens_eq.png
 #include <omp.h>
 
 // Number of states/entities to calculates:
-#define SIZE 3146
+#define SIZE 3142
 
 /** helper functions (which are not needed in python prototype version). */
 
@@ -200,7 +200,6 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
         }
       }
     }
-
     for(int i=0; i < height; i++){
       for(int j=0; j < width; j++){
         X[i*width*2+j*2+0] += cX[i*width*2+j*2+0];
@@ -381,7 +380,6 @@ int main(void)
         o[i*width*z+j*z+2] = py[2];
       }
     }
-    printf("Here");
     // Grid spacing.
     double h   = 1.0;
     double ih2 = 0.5/h;
@@ -412,7 +410,6 @@ int main(void)
       }
     }
 
-    printf("Past here");
     // Re-scan over the image to set the average density
     // in regions outside the states.
     double rhobar=srho/npts;

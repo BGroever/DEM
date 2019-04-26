@@ -1,21 +1,27 @@
 import re
 
-with open("opt.dat","r") as temp_file:
+with open("colchart_counties.txt","r") as temp_file:
     data = temp_file.readlines()
 
-list_clr = []
+list_fips = []
 for line in data:
-    if line.startswith("Mayday Mayday"):
-        clr = int(re.findall('\d\d+$', line)[0])
-        if clr not in list_clr:
-            list_clr.append(clr)
+    a1,a2,a3,fips = line.split()
+    list_fips.append(int(fips))
 
-print("Len = ",len(list_clr))
-print(list_clr)
-for clr in list_clr:
-    B = int(clr/65536)
-    new_clr = clr - B*65536
-    G = int(new_clr/256)
-    R = new_clr - G*256
-    print("Color = {:d} = ({},{},{})".format(clr, R,G,B))
+with open("pop_per_county.txt","r") as temp_file:
+    data2 = temp_file.readlines()
 
+list_pop = []
+for line in data2:
+    pop, fips = line.split()
+    list_pop.append(int(fips))
+
+print("Population fips not in colfips:")
+for pop in list_pop:
+    if pop not in list_fips:
+        print("Line {}: fips = {}".format(list_pop.index(pop),pop))
+
+print("Fips not in Population:")
+for fips in list_fips:
+    if fips not in list_pop:
+        print("Line {}: fips = {}".format(list_fips.index(fips),fips))
