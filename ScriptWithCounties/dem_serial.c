@@ -235,26 +235,48 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
             cu[i*width+j] = tem - k * u[i*width+j];
         }
     }
-    
     #pragma omp parallel for schedule(static)
-    for(int i=0; i < size_img; i++){
-      u[i] += cu[i]*nu;
+    for (int i=0; i<size_img; i++){
+      u[i] += cu[i] * nu;
     }
+    
+    /*
+    for(int i=0; i < height; i++){
+      for(int j=0; j < width; j++){
+        u[i*width+j] += cu[i*width+j] * nu;
+      }
+    }
+    */
 
-    // Prints the current time and the extremal  values of density.
+    // Prints the current time and the extremal values of density.
     *time += dt;
     double minU=16777215;
-    #pragma omp parallel for schedule(static) reduction(min:minU)
     for (int i=0; i<size_img; i++){
       minU = minU < u[i] ? minU : u[i];
     }
 
+    /*for (int i=0; i<height; i++) {
+      for (int j=0; j<width; j++) {
+        if (u[i*width+j] < minU) {
+          minU = u[i*width+j];
+        }
+      }
+    }
+    */
 
     double maxU=0.0;
-    #pragma omp parallel for schedule(static) reduction(max:maxU)
     for (int i=0; i<size_img; i++){
       maxU = maxU > u[i] ? maxU : u[i];
     }
+    /*
+    for (int i=0; i<height; i++) {
+      for (int j=0; j<width; j++) {
+        if (u[i*width+j] > maxU) {
+          maxU = u[i*width+j];
+        }
+      }
+    }
+    */
 
     printf("%f, %f, %f \n", *time, minU, maxU);
 }
