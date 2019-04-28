@@ -46,7 +46,7 @@ static int getIntIndex(int *c, int  el)
 }
 
 // PNG image parameters
-int width, height, size_img;
+int width, height, img_size;
 png_byte color_type;
 png_byte bit_depth;
 png_bytep *row_pointers;
@@ -70,7 +70,7 @@ void read_png_file(char *filename)
 
     width      = png_get_image_width(png, info);
     height     = png_get_image_height(png, info);
-    size_img   = width * height;
+    img_size   = width * height;
     color_type = png_get_color_type(png, info);
     bit_depth  = png_get_bit_depth(png, info);
 
@@ -169,6 +169,7 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
     double vy = 0;
 
     // Calculate the upwinded update for the reference map.
+#pragma omp parallel for schedule(static)
     for(int i=0; i < height; i++){
       for(int j=0; j < width; j++){
 
@@ -199,11 +200,10 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
         }
       }
     }
-    for(int i=0; i < height; i++){
-      for(int j=0; j < width; j++){
-        X[i*width*2+j*2+0] += cX[i*width*2+j*2+0];
-        X[i*width*2+j*2+1] += cX[i*width*2+j*2+1];
-      }
+
+    #pragma omp parallel for schedule(static)
+    for(int i=0; i<img_size; i++){
+      X[i] += cX[i];
     }
 
     //int i = 50;
@@ -216,13 +216,17 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
     // Does the finite-difference update
     double tem;
     int k;
+#pragma omp parallel for
     for (int i=0; i<height; i++) {
         for (int j=0; j<width; j++) {
-            if (i>0){
-                tem = u[(i-1)*width+j]; k = 1;
-            }else{
-                tem = 0; k = 0;
-            }
+          tem = i>0 ? u[(i-1)*width+j]:0;
+          k   = i>0 ? 1:0;
+            //if (i>0){
+            //    tem = u[(i-1)*width+j]; k = 1;
+            //}else{
+            //    tem = 0; k = 0;
+            //}
+
             if (j>0){
                 tem += u[i*width+(j-1)]; k += 1;
             }
@@ -237,7 +241,7 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
     }
     
     #pragma omp parallel for schedule(static)
-    for(int i=0; i < size_img; i++){
+    for(int i=0; i < img_size; i++){
       u[i] += cu[i]*nu;
     }
 
@@ -245,14 +249,14 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
     *time += dt;
     double minU=16777215;
     #pragma omp parallel for schedule(static) reduction(min:minU)
-    for (int i=0; i<size_img; i++){
+    for (int i=0; i<img_size; i++){
       minU = minU < u[i] ? minU : u[i];
     }
 
 
     double maxU=0.0;
     #pragma omp parallel for schedule(static) reduction(max:maxU)
-    for (int i=0; i<size_img; i++){
+    for (int i=0; i<img_size; i++){
       maxU = maxU > u[i] ? maxU : u[i];
     }
 
