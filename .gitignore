@@ -36,6 +36,7 @@
 *.x86_64
 *.hex
 exec.*
+exe_*
 
 # Debug files
 *.dSYM/
@@ -51,3 +52,6 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# output files
+dens_eq.png
