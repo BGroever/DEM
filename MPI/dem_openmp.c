@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
 
     /* Read in the undeformed US map. */
     int m, n; int *o;
-    o = read_map("usa_vs.png", &m, &n);
+    o = read_map("usa_lg.png", &m, &n);
 
     /* Get subimage boundaries of process and print diagnostic MPI messages */
     int  x1, y1, x2, y2;
