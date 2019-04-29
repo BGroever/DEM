@@ -22,17 +22,9 @@ make
 ```
 and run as:
 ```Bash
-./exec.x
+mpirun -np 2 -hosts master,node1 -genv OMP_NUM_THREADS 2 ./exec.openmp
 ```
 
-The diff_map2.c can be compiled as:
-```Bash
-gcc diff_map2.c -o exec -lm -lpng
-```
-and run as:
-```Bash
-./exec
-```
 
 # Acknowledgement
 
