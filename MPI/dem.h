@@ -141,7 +141,7 @@ void write_png_file(char *filename)
 int* read_map(char* pngfile, int* m, int* n)
 {
   /* Read in the undeformed US map. */
-  read_png_file("usa_vs.png");
+  read_png_file(pngfile);
 
   int z = 3;
   int *o = malloc(height*width*z * sizeof(int));
