@@ -2,15 +2,9 @@
 #SBATCH -J exec.openmp
 #SBATCH -o exec.openmp.out
 #SBATCH -e exec.openmp.err
-<<<<<<< HEAD
-#SBATCH -p general
-#SBATCH -n 9
-#SBATCH -c 8
-=======
 #SBATCH -p shared
 #SBATCH -n 2
 #SBATCH -c 2
->>>>>>> f3a2d4b7852c54ed46c68503572eef01d312e583
 #SBATCH -t 1-00:00
 #SBATCH --mem-per-cpu=4000
 #SBATCH --account=ingber_lab
@@ -22,10 +16,5 @@ module load gcc/7.1.0-fasrc01 openmpi/3.1.1-fasrc01
 rm -rf exec.*
 make
 
-<<<<<<< HEAD
-export OMP_NUM_THREADS=8
-srun -n 9 --cpus-per-task=8 --mpi=pmi2 ./exec.openmp
-=======
 export OMP_NUM_THREADS=4
 srun -n 2 --cpus-per-task=4 --mpi=pmi2 ./exec.openmp >> output.txt
->>>>>>> f3a2d4b7852c54ed46c68503572eef01d312e583
