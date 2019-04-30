@@ -73,7 +73,7 @@ void step(int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2
     double tem;
     int k;
 
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int i=x1; i<x2; i++) {
         for (int j=y1; j<y2; j++) {
             if (i>0){
@@ -125,12 +125,15 @@ int main(int argc, char *argv[])
 
     /* Read in the undeformed US map. */
     int m, n; int *o;
-    o = read_map("usa_lg.png", &m, &n);
+    o = read_map("usa_sm.png", &m, &n);
 
     /* Get subimage boundaries of process and print diagnostic MPI messages */
     int  x1, y1, x2, y2;
     setup_mpi(rank, &size, & x1, &y1, &x2, &y2, m, n);
     if(rank==0){ printf("Image size is (%d,%d)\n", m, n);}
+    MPI_Barrier(MPI_COMM_WORLD);
+    int nthreads = omp_get_num_threads();
+    printf("rank %d has %d\n", rank, nthreads);
 
     int rank_m, rank_n, size_m, size_n;
     get_position(size, rank, &rank_m, &rank_n, &size_m, &size_n);
@@ -171,7 +174,7 @@ int main(int argc, char *argv[])
     for(int l=0; l < 24; l++){
       step(size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt/24.0, &time, u, cu, X, cX, h, ih2, m, n);
     }
-    for(int l=1; l < nsteps;l++){
+    for(int l=1; l < nsteps/10;l++){
       step(size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt     , &time, u, cu, X, cX, h, ih2, m, n);
     }
 
