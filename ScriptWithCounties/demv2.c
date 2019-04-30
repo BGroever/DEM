@@ -103,6 +103,8 @@ void read_png_file(char *filename)
     png_read_update_info(png, info);
 
     row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * height);
+
+    #pragma omp parallel for schedule(static)
     for(int y = 0; y < height; y++) {
       row_pointers[y] = (png_byte*)malloc(png_get_rowbytes(png,info));
     }
@@ -150,6 +152,7 @@ void write_png_file(char *filename)
     png_write_image(png, row_pointers);
     png_write_end(png, NULL);
 
+    #pragma omp parallel for schedule(static)
     for(int y = 0; y < height; y++) {
       free(row_pointers[y]);
     }
@@ -169,7 +172,7 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
     double vy = 0;
 
     // Calculate the upwinded update for the reference map.
-#pragma omp parallel for schedule(static)
+    #pragma omp parallel for schedule(static)
     for(int i=0; i < height; i++){
       for(int j=0; j < width; j++){
 
@@ -216,7 +219,7 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
     // Does the finite-difference update
     double tem;
     int k;
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int i=0; i<height; i++) {
         for (int j=0; j<width; j++) {
           tem = i>0 ? u[(i-1)*width+j]:0;
@@ -239,7 +242,7 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
             cu[i*width+j] = tem - k * u[i*width+j];
         }
     }
-    
+
     #pragma omp parallel for schedule(static)
     for(int i=0; i < img_size; i++){
       u[i] += cu[i]*nu;
