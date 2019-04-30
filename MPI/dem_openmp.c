@@ -130,6 +130,7 @@ int main(int argc, char *argv[])
     /* Get subimage boundaries of process and print diagnostic MPI messages */
     int  x1, y1, x2, y2;
     setup_mpi(rank, &size, & x1, &y1, &x2, &y2, m, n);
+    if(rank==0){ printf("Image size is(%d,%d)\n", m, n);}
 
     int rank_m, rank_n, size_m, size_n;
     get_position(size, rank, &rank_m, &rank_n, &size_m, &size_n);
