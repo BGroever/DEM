@@ -3,8 +3,8 @@ cxx=gcc
 mpi=mpicc
 
 # Compilation flags
-cflags=-pedantic -Wall -O3
-openmp=-pedantic -Wall -O3 -fopenmp
+cflags=-O3 #-pedantic -Wall
+openmp=-O3 -fopenmp #-pedantic -Wall -fopt-info-vec-missed -g
 
 # Flags for PNG library
 png_lflags=-lm -lpng

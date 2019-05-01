@@ -73,7 +73,8 @@ void step(int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2
     double tem;
     int k;
 
-    //#pragma omp parallel for
+    //#pragma omp simd
+    #pragma omp parallel for schedule(static)
     for (int i=x1; i<x2; i++) {
         for (int j=y1; j<y2; j++) {
             if (i>0){
@@ -115,8 +116,8 @@ int main(int argc, char *argv[])
 {
 
     /* Initialize MPI */
-    int rank, size;
-    MPI_Init(&argc, &argv);
+    int rank, size, provided;
+    MPI_Init_thread(&argc,&argv, MPI_THREAD_MULTIPLE, &provided);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
@@ -132,7 +133,7 @@ int main(int argc, char *argv[])
     setup_mpi(rank, &size, & x1, &y1, &x2, &y2, m, n);
     if(rank==0){ printf("Image size is (%d,%d)\n", m, n);}
     MPI_Barrier(MPI_COMM_WORLD);
-    int nthreads = omp_get_num_threads();
+    int nthreads = omp_get_max_threads();
     printf("rank %d has %d\n", rank, nthreads);
 
     int rank_m, rank_n, size_m, size_n;
@@ -174,7 +175,7 @@ int main(int argc, char *argv[])
     for(int l=0; l < 24; l++){
       step(size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt/24.0, &time, u, cu, X, cX, h, ih2, m, n);
     }
-    for(int l=1; l < nsteps/10;l++){
+    for(int l=1; l < nsteps;l++){
       step(size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt     , &time, u, cu, X, cX, h, ih2, m, n);
     }
 
