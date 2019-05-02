@@ -50,7 +50,7 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
     for (int i=0; i<m; i++) {
         for (int j=0; j<n; j++) {
             tem = (i>0)*u[(i-1)*n+j] + (i<0)*0.0 + (j>0)*u[i*n+(j-1)] + (j<n-1)*u[i*n+(j+1)] + (i<m-1)*u[(i+1)*n+j];
-            k   = (i>0)*1 + + (i<0)*0 + (j>0) + (j<n-1) + (i<m-1);
+            k   = (i>0)*1 + (i<0)*0 + (j>0) + (j<n-1) + (i<m-1);
             cu[i*n+j] = tem - k * u[i*n+j];
         }
     }
