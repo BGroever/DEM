@@ -1,0 +1,20 @@
+#!/bin/bash
+#SBATCH -J openmp
+#SBATCH -o openmp.out
+#SBATCH -e openmp.err
+#SBATCH -p shared
+#SBATCH -n 2
+#SBATCH -c 2
+#SBATCH -t 0-60:00
+#SBATCH --mem-per-cpu=4000
+#SBATCH --account=ingber_lab
+
+
+#Use this version of gcc on odyssy it already includes libpng
+module purge
+module load gcc/7.1.0-fasrc01 openmpi/3.1.1-fasrc01
+rm -rf exec.*
+make
+
+export OMP_NUM_THREADS=2
+srun -n 2 --cpus-per-task=2 --mpi=pmi2 ./exec.openmp
