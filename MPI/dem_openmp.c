@@ -31,39 +31,20 @@ void step(int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2
     for(int i=x1; i < x2; i++){
       for(int j=y1; j < y2; j++){
 
-        if ((i>0) && (i<m-1)) {
-          vx = (-1.0) * (u[(i+1)*n+j]-u[(i-1)*n+j]) * fac / u[i*n+j];
-          if (vx > 0) {
-            cX[i*n*2+j*2+0] = vx*(-1*X[i*n*2+j*2+0] + X[(i-1)*n*2+j*2+0]);
-            cX[i*n*2+j*2+1] = vx*(-1*X[i*n*2+j*2+1] + X[(i-1)*n*2+j*2+1]);
-          }else{
-            cX[i*n*2+j*2+0] = vx*(   X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0]);
-            cX[i*n*2+j*2+1] = vx*(   X[i*n*2+j*2+1] - X[(i+1)*n*2+j*2+1]);
-          }
-        }else{
-            cX[i*n*2+j*2+0] = 0.0;
-            cX[i*n*2+j*2+1] = 0.0;
-        }
+        vx = (-1.0) * (u[(i+1)*n+j]-u[(i-1)*n+j]) * fac / u[i*n+j];
+        cX[i*n*2+j*2+0] = ((i>0) && (i<m-1))*(vx > 0)*vx*(-1*X[i*n*2+j*2+0] + X[(i-1)*n*2+j*2+0])+(vx < 0)*vx*(X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0])+((i<0) || (i>m-1))*0.0;
+        cX[i*n*2+j*2+1] = ((i>0) && (i<m-1))*(vx > 0)*vx*(-1*X[i*n*2+j*2+1] + X[(i-1)*n*2+j*2+1])+(vx < 0)*vx*(X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0])+((i<0) || (i>m-1))*0.0;
 
-        if ( (j>0) && (j<n-1)) {
-          vy = (-1.0) * (u[i*n+(j+1)]-u[i*n+(j-1)]) * fac / u[i*n+j];
-          if (vy > 0) {
-            cX[i*n*2+j*2+0] += vy*(-1*X[i*n*2+j*2+0]+X[i*n*2+(j-1)*2+0]);
-            cX[i*n*2+j*2+1] += vy*(-1*X[i*n*2+j*2+1]+X[i*n*2+(j-1)*2+1]);
-          } else {
-            cX[i*n*2+j*2+0] += vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0]);
-            cX[i*n*2+j*2+1] += vy*(X[i*n*2+j*2+1]-1*X[i*n*2+(j+1)*2+1]);
-          }
-        }
+        vy = (-1.0) * (u[i*n+(j+1)]-u[i*n+(j-1)]) * fac / u[i*n+j];
+        cX[i*n*2+j*2+0] += ((j>0) && (j<n-1))*(vy > 0)*vy*(-1*X[i*n*2+j*2+0]+X[i*n*2+(j-1)*2+0])+(vy < 0)*vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0])+((j<0) || (j>n-1))*0.0;
+        cX[i*n*2+j*2+1] += ((j>0) && (j<n-1))*(vy > 0)*vy*(-1*X[i*n*2+j*2+1]+X[i*n*2+(j-1)*2+1])+(vy < 0)*vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0])+((j<0) || (j>n-1))*0.0;
+
       }
     }
 
     #pragma omp parallel for schedule(static)
-    for(int i=x1; i < x2; i++){
-      for(int j=y1; j < y2; j++){
-        X[i*n*2+j*2+0] += cX[i*n*2+j*2+0];
-        X[i*n*2+j*2+1] += cX[i*n*2+j*2+1];
-      }
+    for(int i=0; i < m*n*2; i++){
+      X[i] += cX[i];
     }
 
     /* MPI updating neighbour pixels */
@@ -77,37 +58,23 @@ void step(int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2
     #pragma omp parallel for schedule(static)
     for (int i=x1; i<x2; i++) {
         for (int j=y1; j<y2; j++) {
-            if (i>0){
-                tem = u[(i-1)*n+j]; k = 1;
-            }else{
-                tem = 0; k = 0;
-            }
-            if (j>0){
-                tem += u[i*n+(j-1)]; k += 1;
-            }
-            if (j<n-1){
-                tem += u[i*n+(j+1)]; k += 1;
-            }
-            if (i<m-1){
-                tem += u[(i+1)*n+j]; k += 1;
-            }
-            cu[i*n+j] = tem - k * u[i*n+j];
+          tem = (i>0)*u[(i-1)*n+j] + (i<0)*0.0 + (j>0)*u[i*n+(j-1)] + (j<n-1)*u[i*n+(j+1)] + (i<m-1)*u[(i+1)*n+j];
+          k   = (i>0)*1 + (i<0)*0 + (j>0) + (j<n-1) + (i<m-1);
+          cu[i*n+j] = tem - k * u[i*n+j];
         }
     }
 
     #pragma omp parallel for schedule(static)
-    for(int i=x1; i < x2; i++){
-      for(int j=y1; j < y2; j++){
-        u[i*n+j] += cu[i*n+j] * nu;
-      }
+    for(int i=0; i < m*n; i++){
+      u[i] += cu[i] * nu;
     }
 
     /* MPI updating neighbour pixels */
     ghost_exchange_u(size_m,size_n,rank_m,rank_n,u,x1,y1,x2,y2,m,n);
 
     /* Print the current time and the extremal values of density */
-    *time += dt;
-    print_max_min(size_m,size_n,rank_m,rank_n,u,time,x1,y1,x2,y2,m,n);
+    //*time += dt;
+    //print_max_min(size_m,size_n,rank_m,rank_n,u,time,x1,y1,x2,y2,m,n);
 
 }
 
@@ -126,7 +93,7 @@ int main(int argc, char *argv[])
 
     /* Read in the undeformed US map. */
     int m, n; int *o;
-    o = read_map("usa_sm.png", &m, &n);
+    o = read_map("usa_20.png", &m, &n);
 
     /* Get subimage boundaries of process and print diagnostic MPI messages */
     int  x1, y1, x2, y2;
