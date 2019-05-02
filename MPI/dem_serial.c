@@ -29,39 +29,19 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
     for(int i=0; i < m; i++){
       for(int j=0; j < n; j++){
 
-        if ((i>0) && (i<m-1)) {
-          vx = (-1.0) * (u[(i+1)*n+j]-u[(i-1)*n+j]) * fac / u[i*n+j];
-          if (vx > 0) {
-            cX[i*n*2+j*2+0] = vx*(-1*X[i*n*2+j*2+0] + X[(i-1)*n*2+j*2+0]);
-            cX[i*n*2+j*2+1] = vx*(-1*X[i*n*2+j*2+1] + X[(i-1)*n*2+j*2+1]);
-          }else{
-            cX[i*n*2+j*2+0] = vx*(   X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0]);
-            cX[i*n*2+j*2+1] = vx*(   X[i*n*2+j*2+1] - X[(i+1)*n*2+j*2+1]);
-          }
-        }else{
-            cX[i*n*2+j*2+0] = 0.0;
-            cX[i*n*2+j*2+1] = 0.0;
-        }
+        vx = (-1.0) * (u[(i+1)*n+j]-u[(i-1)*n+j]) * fac / u[i*n+j];
+        cX[i*n*2+j*2+0] = ((i>0) && (i<m-1))*(vx > 0)*vx*(-1*X[i*n*2+j*2+0] + X[(i-1)*n*2+j*2+0])+(vx < 0)*vx*(X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0])+((i<0) || (i>m-1))*0.0;
+        cX[i*n*2+j*2+1] = ((i>0) && (i<m-1))*(vx > 0)*vx*(-1*X[i*n*2+j*2+1] + X[(i-1)*n*2+j*2+1])+(vx < 0)*vx*(X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0])+((i<0) || (i>m-1))*0.0;
 
+        vy = (-1.0) * (u[i*n+(j+1)]-u[i*n+(j-1)]) * fac / u[i*n+j];
+        cX[i*n*2+j*2+0] += ((j>0) && (j<n-1))*(vy > 0)*vy*(-1*X[i*n*2+j*2+0]+X[i*n*2+(j-1)*2+0])+(vy < 0)*vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0])+((j<0) || (j>n-1))*0.0;
+        cX[i*n*2+j*2+1] += ((j>0) && (j<n-1))*(vy > 0)*vy*(-1*X[i*n*2+j*2+1]+X[i*n*2+(j-1)*2+1])+(vy < 0)*vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0])+((j<0) || (j>n-1))*0.0;
 
-        if ( (j>0) && (j<n-1)) {
-          vy = (-1.0) * (u[i*n+(j+1)]-u[i*n+(j-1)]) * fac / u[i*n+j];
-          if (vy > 0) {
-            cX[i*n*2+j*2+0] += vy*(-1*X[i*n*2+j*2+0]+X[i*n*2+(j-1)*2+0]);
-            cX[i*n*2+j*2+1] += vy*(-1*X[i*n*2+j*2+1]+X[i*n*2+(j-1)*2+1]);
-          } else {
-            cX[i*n*2+j*2+0] += vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0]);
-            cX[i*n*2+j*2+1] += vy*(X[i*n*2+j*2+1]-1*X[i*n*2+(j+1)*2+1]);
-          }
-        }
       }
     }
 
-    for(int i=0; i < m; i++){
-      for(int j=0; j < n; j++){
-        X[i*n*2+j*2+0] += cX[i*n*2+j*2+0];
-        X[i*n*2+j*2+1] += cX[i*n*2+j*2+1];
-      }
+    for(int i=0; i < m*n*2; i++){
+      X[i] += cX[i];
     }
 
     /* Do the finite-difference update */
@@ -69,51 +49,19 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
     int k;
     for (int i=0; i<m; i++) {
         for (int j=0; j<n; j++) {
-            if (i>0){
-                tem = u[(i-1)*n+j]; k = 1;
-            }else{
-                tem = 0; k = 0;
-            }
-            if (j>0){
-                tem += u[i*n+(j-1)]; k += 1;
-            }
-            if (j<n-1){
-                tem += u[i*n+(j+1)]; k += 1;
-            }
-            if (i<m-1){
-                tem += u[(i+1)*n+j]; k += 1;
-            }
+            tem = (i>0)*u[(i-1)*n+j] + (i<0)*0.0 + (j>0)*u[i*n+(j-1)] + (j<n-1)*u[i*n+(j+1)] + (i<m-1)*u[(i+1)*n+j];
+            k   = (i>0)*1 + + (i<0)*0 + (j>0) + (j<n-1) + (i<m-1);
             cu[i*n+j] = tem - k * u[i*n+j];
         }
     }
 
-    for(int i=0; i < m; i++){
-      for(int j=0; j < n; j++){
-        u[i*n+j] += cu[i*n+j] * nu;
-      }
+    for(int i=0; i < m*n; i++){
+      u[i] += cu[i] * nu;
     }
 
     /* Print the current time and the extremal values of density */
     *time += dt;
-    double minU=16777215;
-    for (int i=0; i<m; i++) {
-      for (int j=0; j<n; j++) {
-        if (u[i*n+j] < minU) {
-          minU = u[i*n+j];
-        }
-      }
-    }
 
-    double maxU=0.00;
-    for (int i=0; i<m; i++) {
-      for (int j=0; j<n; j++) {
-        if (u[i*n+j] > maxU) {
-          maxU = u[i*n+j];
-        }
-      }
-    }
-
-    printf("%f, %f, %f \n", *time, minU, maxU);
 }
 
 
@@ -162,6 +110,26 @@ int main(void)
     for(int l=1; l < nsteps;l++){
       step(dt,      &time, u, cu, X, cX, h, ih2, m, n);
     }
+
+    double minU=16777215;
+    for (int i=0; i<m; i++) {
+      for (int j=0; j<n; j++) {
+        if (u[i*n+j] < minU) {
+          minU = u[i*n+j];
+        }
+      }
+    }
+
+    double maxU=0.00;
+    for (int i=0; i<m; i++) {
+      for (int j=0; j<n; j++) {
+        if (u[i*n+j] > maxU) {
+          maxU = u[i*n+j];
+        }
+      }
+    }
+
+    printf("%f, %f, %f \n", time, minU, maxU);
 
     save_map(o, X);
 
