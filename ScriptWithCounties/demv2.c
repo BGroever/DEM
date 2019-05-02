@@ -19,7 +19,7 @@ Output file:      -dens_eq.png
 #include <omp.h>
 
 // Number of states/entities to calculates:
-#define SIZE 3142
+#define SIZE 50//3142
 
 /** helper functions (which are not needed in python prototype version). */
 
@@ -175,32 +175,17 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
     #pragma omp parallel for schedule(static)
     for(int i=0; i < height; i++){
       for(int j=0; j < width; j++){
+        int not_borderi = (i>0) && (i<height-1);
+        int not_borderj = (j>0) && (j<width-1);
+        cX[i*width*2+j*2+0] = not_borderi*((vx>0)*vx*(-1*X[i*width*2+j*2+0] + X[(i-1)*width*2+j*2+0])
+                                          +(vx<0)*vx*(   X[i*width*2+j*2+0] - X[(i+1)*width*2+j*2+0]))
+                             +not_borderj*((vy>0)*vy*(-1*X[i*width*2+j*2+0]+X[i*width*2+(j-1)*2+0])
+                                          +(vy<0)*vy*(X[i*width*2+j*2+0]-1*X[i*width*2+(j+1)*2+0]));
+        cX[i*width*2+j*2+1] = not_borderi*((vx>0)*vx*(-1*X[i*width*2+j*2+1] + X[(i-1)*width*2+j*2+1])
+                                          +(vx<0)*vx*(   X[i*width*2+j*2+1] - X[(i+1)*width*2+j*2+1]))
+                             +not_borderj*((vy>0)*vy*(-1*X[i*width*2+j*2+1]+X[i*width*2+(j-1)*2+1])
+                                          +(vy<0)*vy*(X[i*width*2+j*2+1]-1*X[i*width*2+(j+1)*2+1]));
 
-        if ((i>0) && (i<height-1)) {
-          vx = (-1.0) * (u[(i+1)*width+j]-u[(i-1)*width+j]) * fac / u[i*width+j];
-          if (vx > 0) {
-            cX[i*width*2+j*2+0] = vx*(-1*X[i*width*2+j*2+0] + X[(i-1)*width*2+j*2+0]);
-            cX[i*width*2+j*2+1] = vx*(-1*X[i*width*2+j*2+1] + X[(i-1)*width*2+j*2+1]);
-          }else{
-            cX[i*width*2+j*2+0] = vx*(   X[i*width*2+j*2+0] - X[(i+1)*width*2+j*2+0]);
-            cX[i*width*2+j*2+1] = vx*(   X[i*width*2+j*2+1] - X[(i+1)*width*2+j*2+1]);
-          }
-        }else{
-            cX[i*width*2+j*2+0] = 0.0;
-            cX[i*width*2+j*2+1] = 0.0;
-        }
-
-
-        if ( (j>0) && (j<width-1)) {
-          vy = (-1.0) * (u[i*width+(j+1)]-u[i*width+(j-1)]) * fac / u[i*width+j];
-          if (vy > 0) {
-            cX[i*width*2+j*2+0] += vy*(-1*X[i*width*2+j*2+0]+X[i*width*2+(j-1)*2+0]);
-            cX[i*width*2+j*2+1] += vy*(-1*X[i*width*2+j*2+1]+X[i*width*2+(j-1)*2+1]);
-          } else {
-            cX[i*width*2+j*2+0] += vy*(X[i*width*2+j*2+0]-1*X[i*width*2+(j+1)*2+0]);
-            cX[i*width*2+j*2+1] += vy*(X[i*width*2+j*2+1]-1*X[i*width*2+(j+1)*2+1]);
-          }
-        }
       }
     }
 
@@ -209,37 +194,16 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
       X[i] += cX[i];
     }
 
-    //int i = 50;
-    //int j = 150;
-    //vx = (-1.0) * (u[(i+1)*width+j]-u[(i-1)*width+j]) * fac / u[i*width+j];
-    //vy = (-1.0) * (u[i*width+(j+1)]-u[i*width+(j-1)]) * fac / u[i*width+j];
-    //printf("vx: %e for %d, vy: %e for %d\n", vx, i, vy, j);
-    //printf("x:  %e, y: %e\n", cX[i*width*2+j*2+0], cX[i*width*2+j*2+1]);
-
     // Does the finite-difference update
     double tem;
     int k;
     #pragma omp parallel for
     for (int i=0; i<height; i++) {
         for (int j=0; j<width; j++) {
-          tem = i>0 ? u[(i-1)*width+j]:0;
-          k   = i>0 ? 1:0;
-            //if (i>0){
-            //    tem = u[(i-1)*width+j]; k = 1;
-            //}else{
-            //    tem = 0; k = 0;
-            //}
-
-            if (j>0){
-                tem += u[i*width+(j-1)]; k += 1;
-            }
-            if (j<width-1){
-                tem += u[i*width+(j+1)]; k += 1;
-            }
-            if (i<height-1){
-                tem += u[(i+1)*width+j]; k += 1;
-            }
-            cu[i*width+j] = tem - k * u[i*width+j];
+          tem = (i>0)*u[(i-1)*width+j] + (j>0)*u[i*width+(j-1)] 
+               + (j<width-1)*u[i*width+(j+1)] + (i<height-1)*u[(i+1)*width+j];
+          k   = (i>0)+(j>0)+(j<width-1)+(i<height-1);
+          cu[i*width+j] = tem - k * u[i*width+j];
         }
     }
 
@@ -263,7 +227,7 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
       maxU = maxU > u[i] ? maxU : u[i];
     }
 
-    printf("%f, %f, %f \n", *time, minU, maxU);
+    //printf("%f, %f, %f \n", *time, minU, maxU);
 }
 
 /** Main program for density equalizing map projections. */
@@ -275,7 +239,7 @@ int main(void)
     double tstart=omp_get_wtime(), tend;
 
     // Read in the color values for each state. 
-    char const* const fileName = "colchart_counties.txt";
+    char const* const fileName = "colchart.txt"; //"colchart_counties.txt";
     FILE* file = fopen(fileName, "r");
     char line[256];
     int d[SIZE] = {0};
@@ -322,7 +286,7 @@ int main(void)
     fclose(file);
 
     // Read in the population densities for each state.
-    char const* const fileName2 = "den_per_county.txt";
+    char const* const fileName2 = "density.txt";//"den_per_county.txt";
     FILE* file2 = fopen(fileName2, "r");
     double rh[SIZE] = {0};
 
@@ -362,7 +326,7 @@ int main(void)
     //}
 
     // Reads in the undeformed US map.
-    read_png_file("uscounties.png");
+    read_png_file("usa_vs.png");//"uscounties.png");
     //get_time(&tend);
     tend = omp_get_wtime();
     printf("Elapsed time load data: %f s\n", tend-tstart); //timespec_diff(tstart, tend));
@@ -533,7 +497,7 @@ int main(void)
 
     //get_time(&tstart);
     tstart = omp_get_wtime();
-    write_png_file("dens_eq.png");
+    write_png_file("dens_eq_vs.png");
     //get_time(&tend);
     tend = omp_get_wtime();
     printf("Elapsed time saving: %f s\n", tend-tstart); //timespec_diff(tstart, tend));

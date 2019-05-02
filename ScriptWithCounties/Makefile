@@ -5,7 +5,7 @@ cxx=gcc-8
 cflags=-fopenmp -pedantic -Wall -O3 -I/usr/local/include -L/usr/local/lib #-DUSE_CLOCK
 
 # Flags for PNG library
-png_lflags=-lm -lpng
+png_lflags=-lm -lpng -lz -w
 
 execs=exe_par.x exe_ser.x exe_parv2.x
 
