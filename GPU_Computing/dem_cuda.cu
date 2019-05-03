@@ -6,46 +6,6 @@
 #include "dem.h"
 #include "demmpi.h"
 
-//#define HANDLE_ERROR( err ) (HandleError( err, __FILE__, __LINE__ ))
-
-__global__ void __multiply__(int n, float *x, float *y){
-  for (int i = 0; i < n; i++)
-    y[i] = x[i] + y[i];
-
-}
-
-extern "C" void call_me_maybe(){
-  int N = 1<<20;
-  float *x, *y;
-
-  // Allocate Unified Memory – accessible from CPU or GPU
-  cudaMallocManaged(&x, N*sizeof(float));
-  cudaMallocManaged(&y, N*sizeof(float));
-
-  // initialize x and y arrays on the host
-  for (int i = 0; i < N; i++) {
-    x[i] = 1.0f;
-    y[i] = 2.0f;
-  }
-
-  // Run kernel on 1M elements on the GPU
-  __multiply__<<<1, 1>>>(N, x, y);
-
-  // Wait for GPU to finish before accessing on host
-  cudaDeviceSynchronize();
-
-  // Check for errors (all values should be 3.0f)
-  float maxError = 0.0f;
-  for (int i = 0; i < N; i++)
-    maxError = fmax(maxError, fabs(y[i]-3.0f));
-  //std::cout << "Max error: " << maxError << std::endl;
-  printf("Max error: %f\n", maxError);
-  // Free memory
-  cudaFree(x);
-  cudaFree(y);
-}
-
-
 __device__ __forceinline__ double myfmod(double x, double y){
   return fmod(x,y);
 }
@@ -56,8 +16,6 @@ __global__ void update_cXX(double *u, double *cu, double *X, double *cX, double 
     double vx = 0;
     double vy = 0;
     int i_cond=0, j_cond=0, m=indices[0], n=indices[1];
-//        x1=indices[2], x2=indices[3], y1=indices[4], 
-//	y2=indices[5];
 
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     if(i<(m*n)){
