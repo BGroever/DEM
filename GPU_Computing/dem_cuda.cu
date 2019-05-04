@@ -11,6 +11,7 @@ __device__ __forceinline__ double myfmod(double x, double y){
 }
 
 
+/** Calculate the upwinded update for the reference map. */
 __global__ void update_cXX(double *u, double *cu, double *X, double *cX, double *params, int *indices){
     double fac = params[1];
     double vx = 0;
@@ -29,33 +30,8 @@ __global__ void update_cXX(double *u, double *cu, double *X, double *cX, double 
                   +j_cond*((vy>0)*vy*(-X[2*i+1]+X[2*(i-1)+1]) + (!(vy>0))*vy*(X[2*i+1]-X[2*(i+1)+1]));
        X[2*i  ] += cX[2*i  ];
        X[2*i+1] += cX[2*i+1];
-    }  
+    }
 
-    /** Calculate the upwinded update for the reference map. */
-/*    for(int i=x1; i < x2; i++){
-      for(int j=y1; j < y2; j++){
-        vx = (-1.0) * (u[(i+1)*n+j]-u[(i-1)*n+j]) * fac / u[i*n+j];
-        vy = (-1.0) * (u[i*n+(j+1)]-u[i*n+(j-1)]) * fac / u[i*n+j];
-	i_cond = ((i>0)&&(i<m-1));
-	j_cond = ((j>0)&&(j<n-1));
-        cX[i*n*2+j*2+0]	= i_cond*((vx>0) *vx*(-1*X[i*n*2+j*2+0]+X[(i-1)*n*2+j*2+0])
-			       +(!(vx>0))*vx*( X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0]))
-			 +j_cond*((vy>0) *vy*(-1*X[i*n*2+j*2+0]+X[i*n*2+(j-1)*2+0])
-			       +(!(vy>0))*vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0]));		
-        cX[i*n*2+j*2+1] = i_cond*((vx>0) *vx*(-1*X[i*n*2+j*2+1] + X[(i-1)*n*2+j*2+1])
-			       +(!(vx>0))*vx*(   X[i*n*2+j*2+1] - X[(i+1)*n*2+j*2+1]))
-			 +j_cond*((vy>0) *vy*(-1*X[i*n*2+j*2+1]+X[i*n*2+(j-1)*2+1])
-			       +(!(vy>0))*vy*(X[i*n*2+j*2+1]-1*X[i*n*2+(j+1)*2+1]));
-      }
-    }
-    
-    for(int i=x1; i < x2; i++){
-      for(int j=y1; j < y2; j++){
-        X[i*n*2+j*2+0] += cX[i*n*2+j*2+0];
-        X[i*n*2+j*2+1] += cX[i*n*2+j*2+1];
-      }
-    }
-*/
 }
 
 
@@ -70,27 +46,6 @@ __global__ void update_u(double* u, double* cu, double* params, int* indices){
         u[i] += cu[i]*nu;
     }
 
-/*    
-    double tem, k;
-    int x1=indices[2], x2=indices[3], y1=indices[4], y2=indices[5]; 
-    for (int i=x1; i<x2; i++) {
-        for (int j=y1; j<y2; j++) {
-	    tem = (i>0)  *u[(i-1)*n+j]
-		 +(j>0)  *u[i*n+(j-1)]
-		 +(j<n-1)*u[i*n+(j+1)]
-		 +(i<m-1)*u[(i+1)*n+j];
-	    k   =  (i>0) + (j>0) + (j<n-1) + (i<m-1);
-            cu[i*n+j] = tem - k * u[i*n+j];
-        }
-    }
-
-    
-    for(int i=x1; i < x2; i++){
-      for(int j=y1; j < y2; j++){
-        u[i*n+j] += cu[i*n+j] * nu;
-      }
-    }
-*/
 }
 
 extern "C" void cuda_step(int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2, int y2, double dt, double *time, double *u, double *cu, double *X, double *cX, double h, double ih2, int m, int n) {
@@ -112,34 +67,6 @@ extern "C" void cuda_step(int size_m, int size_n, int rank_m, int rank_n, int x1
     HANDLE_ERROR(cudaMalloc((void**)&d_params, sizeof(double)*2));
     HANDLE_ERROR(cudaMalloc((void**)&d_indices, sizeof(int)*6));
 
-    /** Calculate the upwinded update for the reference map. */
-/*    double vx = 0;
-    double vy = 0;
-    int i_cond=0, j_cond=0;
-    for(int i=x1; i < x2; i++){
-      for(int j=y1; j < y2; j++){
-        vx = (-1.0) * (u[(i+1)*n+j]-u[(i-1)*n+j]) * fac / u[i*n+j];
-        vy = (-1.0) * (u[i*n+(j+1)]-u[i*n+(j-1)]) * fac / u[i*n+j];
-	i_cond = ((i>0)&&(i<m-1));
-	j_cond = ((j>0)&&(j<n-1));
-        cX[i*n*2+j*2+0]	= i_cond*((vx>0) *vx*(-1*X[i*n*2+j*2+0]+X[(i-1)*n*2+j*2+0])
-			       +(!(vx>0))*vx*( X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0]))
-			 +j_cond*((vy>0) *vy*(-1*X[i*n*2+j*2+0]+X[i*n*2+(j-1)*2+0])
-			       +(!(vy>0))*vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0]));		
-        cX[i*n*2+j*2+1] = i_cond*((vx>0) *vx*(-1*X[i*n*2+j*2+1] + X[(i-1)*n*2+j*2+1])
-			       +(!(vx>0))*vx*(   X[i*n*2+j*2+1] - X[(i+1)*n*2+j*2+1]))
-			 +j_cond*((vy>0) *vy*(-1*X[i*n*2+j*2+1]+X[i*n*2+(j-1)*2+1])
-			       +(!(vy>0))*vy*(X[i*n*2+j*2+1]-1*X[i*n*2+(j+1)*2+1]));
-      }
-    }
-    
-    for(int i=x1; i < x2; i++){
-      for(int j=y1; j < y2; j++){
-        X[i*n*2+j*2+0] += cX[i*n*2+j*2+0];
-        X[i*n*2+j*2+1] += cX[i*n*2+j*2+1];
-      }
-    }
-*/    
     HANDLE_ERROR(cudaMemcpy(d_u,   u,   m*n*sizeof(double), cudaMemcpyHostToDevice));
     HANDLE_ERROR(cudaMemcpy(d_cu, cu,   m*n*sizeof(double), cudaMemcpyHostToDevice));
     HANDLE_ERROR(cudaMemcpy(d_X,   X, 2*m*n*sizeof(double), cudaMemcpyHostToDevice));
@@ -147,23 +74,9 @@ extern "C" void cuda_step(int size_m, int size_n, int rank_m, int rank_n, int x1
     HANDLE_ERROR(cudaMemcpy(d_params,  params, 2*sizeof(double), cudaMemcpyHostToDevice));
     HANDLE_ERROR(cudaMemcpy(d_indices, indices, 6*sizeof(int), cudaMemcpyHostToDevice));
 
+    /** Calculate the upwinded update for the reference map. */
     update_cXX<<<ceil((m*n)/512),512>>>(d_u,d_cu,d_X,d_cX,d_params,d_indices);
-    //update_cXX<<<m*n,1>>>(d_u,d_cu,d_X,d_cX,d_params,d_indices);
-/*    
-    HANDLE_ERROR(cudaMemcpy(u,  d_u , m*n*sizeof(double), cudaMemcpyDeviceToHost));
-    HANDLE_ERROR(cudaMemcpy(cu, d_cu, m*n*sizeof(double), cudaMemcpyDeviceToHost));
-    HANDLE_ERROR(cudaMemcpy(X,  d_X , 2*m*n*sizeof(double), cudaMemcpyDeviceToHost));
-    HANDLE_ERROR(cudaMemcpy(cX, d_cX, 2*m*n*sizeof(double), cudaMemcpyDeviceToHost));
-    HANDLE_ERROR(cudaMemcpy(params, d_params, 2*sizeof(double), cudaMemcpyDeviceToHost));
-    HANDLE_ERROR(cudaMemcpy(indices, d_indices, 6*sizeof(int), cudaMemcpyDeviceToHost));
-
-    HANDLE_ERROR(cudaMemcpy(d_u, u, m*n*sizeof(double), cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMemcpy(d_cu, cu, m*n*sizeof(double), cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMemcpy(d_X, X, 2*m*n*sizeof(double), cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMemcpy(d_cX, cX, 2*m*n*sizeof(double), cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMemcpy(d_params, params, 2*sizeof(double), cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMemcpy(d_indices, indices, 6*sizeof(int), cudaMemcpyHostToDevice));
-*/
+    
     /* MPI updating neighbour pixels */
     ghost_exchange_X(size_m, size_n, rank_m, rank_n, X, x1, y1, x2, y2, m, n);
 
