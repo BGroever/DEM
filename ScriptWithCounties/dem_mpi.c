@@ -132,8 +132,8 @@ int main(int argc, char *argv[])
     get_position(size, rank, &rank_m, &rank_n, &size_m, &size_n);
 
     /* Get density data from quantity of interest data and color bar codes */
-    double *u = malloc(m*n * sizeof(double));
-    double *cu = malloc(m*n * sizeof(double));
+    double *u = (double*)malloc(m*n * sizeof(double));
+    double *cu = (double*)malloc(m*n * sizeof(double));
     image_to_density_map(o, u, "colchart.txt", "density.txt", SIZE, rank);
 
     /** Grid spacing. */
@@ -141,8 +141,8 @@ int main(int argc, char *argv[])
     double ih2 = 0.5/h;
 
     /** Initialize the reference map coordinates. */
-    double *X = malloc(m*n*2 * sizeof(double));
-    double *cX = malloc(m*n*2 * sizeof(double));
+    double *X = (double*)malloc(m*n*2 * sizeof(double));
+    double *cX = (double*)malloc(m*n*2 * sizeof(double));
     for(int i=0; i < m; i++){
       for(int j=0; j < n; j++){
         X[i*n*2+j*2+0] = h*i;

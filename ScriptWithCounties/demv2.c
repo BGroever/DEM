@@ -335,7 +335,7 @@ int main(void)
     tstart = omp_get_wtime();
 
     int z = 3;
-    int *o = malloc(height*width*z * sizeof(int));
+    int *o = (int*)malloc(height*width*z * sizeof(int));
     for(int i = 0; i < height; i++) {
       png_bytep row = row_pointers[i];
       for(int j = 0; j < width; j++) {
@@ -351,8 +351,8 @@ int main(void)
 
     // Scan the image to set the density field in the states.
     // In addition, calculate the average density. */
-    double *u = malloc(height*width * sizeof(double));
-    double *cu = malloc(height*width * sizeof(double));
+    double *u = (double*)malloc(height*width * sizeof(double));
+    double *cu = (double*)malloc(height*width * sizeof(double));
     double srho = 0.0;
     int npts = 0;
     int co;
@@ -391,8 +391,8 @@ int main(void)
     }
 
     /** Initialize the reference map coordinates. */
-    double *X = malloc(height*width*2 * sizeof(double));
-    double *cX = malloc(height*width*2 * sizeof(double));
+    double *X = (double*)malloc(height*width*2 * sizeof(double));
+    double *cX = (double*)malloc(height*width*2 * sizeof(double));
     for(int i=0; i < height; i++){
       for(int j=0; j < width; j++){
         X[i*width*2+j*2+0] = h*i;
@@ -452,7 +452,7 @@ int main(void)
     int i2;
     int j2;
     //int o2[height*width*z];
-    int *o2 = malloc(height*width*z * sizeof(int));
+    int *o2 = (int*)malloc(height*width*z * sizeof(int));
 
     for (int i=0; i<height; i++) {
         for (int j=0; j<width; j++) {

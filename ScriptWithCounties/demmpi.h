@@ -103,7 +103,7 @@ void send_receive_save(int rank, int size, int* o, double* X, int startm, int st
   if (rank >= 1 && rank < size){
 
       int subimage_size = (endm-startm)*(endn-startn);
-      double* buffer = malloc(subimage_size*2 * sizeof(double));
+      double* buffer = (double*)malloc(subimage_size*2 * sizeof(double));
 
       for(int i = startm; i < endm; i++){
         for(int j = startn; j < endn; j++){
@@ -125,7 +125,7 @@ void send_receive_save(int rank, int size, int* o, double* X, int startm, int st
         int x1, y1, x2, y2;
         get_boundaries(p, size, &x1, &y1, &x2, &y2, m, n);
         int subimage_size = (x2-x1)*(y2-y1);
-        double* buffer = malloc(subimage_size*2 * sizeof(double));
+        double* buffer = (double*)malloc(subimage_size*2 * sizeof(double));
 
         MPI_Status status;
         MPI_Recv(buffer, subimage_size*2, MPI_DOUBLE, p, 0, MPI_COMM_WORLD, &status);
@@ -195,7 +195,7 @@ void ghost_exchange_X(int size_m, int size_n, int rank_m, int rank_n, double *X,
     else{
       // Step 1: we send data to the left
       if(rank_n != 0){
-        double* buffer = malloc((x2-x1)*2 * sizeof(double));
+        double* buffer = (double*)malloc((x2-x1)*2 * sizeof(double));
         for(int i=x1; i < x2; i++){
           buffer[(i-x1)*2+0] = X[i*n*2+y1*2+0];
           buffer[(i-x1)*2+1] = X[i*n*2+y1*2+1];
@@ -206,7 +206,7 @@ void ghost_exchange_X(int size_m, int size_n, int rank_m, int rank_n, double *X,
 
       //Step 2: we receive data from the right
       if(rank_n != (size_n-1)){
-        double* buffer = malloc((x2-x1)*2 * sizeof(double));
+        double* buffer = (double*)malloc((x2-x1)*2 * sizeof(double));
         MPI_Recv(buffer, (x2-x1)*2, MPI_DOUBLE,(rank_n+1)*(size_m)+rank_m, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         //printf("I am rank %d receiving %d from %d \n", rank_n*(size_m)+rank_m, y2, (rank_n+1)*(size_m)+rank_m);
         for(int i=x1; i < x2; i++){
@@ -217,7 +217,7 @@ void ghost_exchange_X(int size_m, int size_n, int rank_m, int rank_n, double *X,
 
       //Step 3: we send data to the right
       if(rank_n != (size_n-1)){
-        double* buffer = malloc((x2-x1)*2 * sizeof(double));
+        double* buffer = (double*)malloc((x2-x1)*2 * sizeof(double));
         for(int i=x1; i < x2; i++){
           buffer[(i-x1)*2+0] = X[i*n*2+(y2-1)*2+0];
           buffer[(i-x1)*2+1] = X[i*n*2+(y2-1)*2+1];
@@ -228,7 +228,7 @@ void ghost_exchange_X(int size_m, int size_n, int rank_m, int rank_n, double *X,
 
       //Step 4: we receive data from the left
       if(rank_n != 0){
-        double* buffer = malloc((x2-x1)*2 * sizeof(double));
+        double* buffer = (double*)malloc((x2-x1)*2 * sizeof(double));
         MPI_Recv(buffer, (x2-x1)*2, MPI_DOUBLE,(rank_n-1)*(size_m)+rank_m, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         //printf("I am rank %d receiving %d from %d \n", rank_n*(size_m)+rank_m, y1-1, (rank_n-1)*(size_m)+rank_m);
         for(int i=x1; i < x2; i++){
@@ -239,7 +239,7 @@ void ghost_exchange_X(int size_m, int size_n, int rank_m, int rank_n, double *X,
 
       // Step 5: we send data to the top
       if(rank_m != 0){
-        double* buffer = malloc((y2-y1)*2 * sizeof(double));
+        double* buffer = (double*)malloc((y2-y1)*2 * sizeof(double));
         for(int j=y1; j < y2; j++){
           buffer[(j-y1)*2+0] = X[x1*n*2+j*2+0];
           buffer[(j-y1)*2+1] = X[x1*n*2+j*2+1];
@@ -252,7 +252,7 @@ void ghost_exchange_X(int size_m, int size_n, int rank_m, int rank_n, double *X,
 
       //Step 6: we receive data from the bottom
       if(rank_m != (size_m-1)){
-        double* buffer = malloc((y2-y1)*2 * sizeof(double));
+        double* buffer = (double*)malloc((y2-y1)*2 * sizeof(double));
         MPI_Recv(buffer, (y2-y1)*2, MPI_DOUBLE, rank_n*(size_m)+(rank_m+1), 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         // if(rank_n==0){
         //   printf("I am rank %d receiving %d from %d \n", rank_n*(size_m)+rank_m, x2, rank_n*(size_m)+rank_m+1);
@@ -265,7 +265,7 @@ void ghost_exchange_X(int size_m, int size_n, int rank_m, int rank_n, double *X,
 
       // Step 7: we send data to the bottom
       if(rank_m != (size_m-1)){
-        double* buffer = malloc((y2-y1)*2 * sizeof(double));
+        double* buffer = (double*)malloc((y2-y1)*2 * sizeof(double));
         for(int j=y1; j < y2; j++){
           buffer[(j-y1)*2+0] = X[(x2-1)*n*2+j*2+0];
           buffer[(j-y1)*2+1] = X[(x2-1)*n*2+j*2+1];
@@ -278,7 +278,7 @@ void ghost_exchange_X(int size_m, int size_n, int rank_m, int rank_n, double *X,
 
       //Step 8: we receive data from the top
       if(rank_m != 0){
-        double* buffer = malloc((y2-y1)*2 * sizeof(double));
+        double* buffer = (double*)malloc((y2-y1)*2 * sizeof(double));
         MPI_Recv(buffer, (y2-y1)*2, MPI_DOUBLE, rank_n*(size_m)+(rank_m-1), 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         // if(rank_n==0){
         //   printf("I am rank %d receiving %d from %d \n", rank_n*(size_m)+rank_m, x1-1, rank_n*(size_m)+rank_m-1);
@@ -300,7 +300,7 @@ void ghost_exchange_u(int size_m, int size_n, int rank_m, int rank_n, double *u,
   else{
     // Step 1: we send data to the left
     if(rank_n != 0){
-      double* buffer = malloc((x2-x1) * sizeof(double));
+      double* buffer = (double*)malloc((x2-x1) * sizeof(double));
       for(int i=x1; i < x2; i++){
         buffer[i-x1] = u[i*n+y1];
       }
@@ -309,7 +309,7 @@ void ghost_exchange_u(int size_m, int size_n, int rank_m, int rank_n, double *u,
 
     //Step 2: we receive data from the right
     if(rank_n != (size_n-1)){
-      double* buffer = malloc((x2-x1) * sizeof(double));
+      double* buffer = (double*)malloc((x2-x1) * sizeof(double));
       MPI_Recv(buffer, (x2-x1), MPI_DOUBLE,(rank_n+1)*(size_m)+rank_m, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       for(int i=x1; i < x2; i++){
         u[i*n+y2] = buffer[i-x1];
@@ -318,7 +318,7 @@ void ghost_exchange_u(int size_m, int size_n, int rank_m, int rank_n, double *u,
 
     //Step 3: we send data to the right
     if(rank_n != (size_n-1)){
-      double* buffer = malloc((x2-x1) * sizeof(double));
+      double* buffer = (double*)malloc((x2-x1) * sizeof(double));
       for(int i=x1; i < x2; i++){
         buffer[i-x1] = u[i*n+(y2-1)];
       }
@@ -327,7 +327,7 @@ void ghost_exchange_u(int size_m, int size_n, int rank_m, int rank_n, double *u,
 
     //Step 4: we receive data from the left
     if(rank_n != 0){
-      double* buffer = malloc((x2-x1) * sizeof(double));
+      double* buffer = (double*)malloc((x2-x1) * sizeof(double));
       MPI_Recv(buffer, (x2-x1), MPI_DOUBLE,(rank_n-1)*(size_m)+rank_m, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       for(int i=x1; i < x2; i++){
         u[i*n+y1-1] = buffer[i-x1];
@@ -336,7 +336,7 @@ void ghost_exchange_u(int size_m, int size_n, int rank_m, int rank_n, double *u,
 
     // Step 5: we send data to the top
     if(rank_m != 0){
-      double* buffer = malloc((y2-y1) * sizeof(double));
+      double* buffer = (double*)malloc((y2-y1) * sizeof(double));
       for(int j=y1; j < y2; j++){
         buffer[j-y1] = u[x1*n+j];
       }
@@ -345,7 +345,7 @@ void ghost_exchange_u(int size_m, int size_n, int rank_m, int rank_n, double *u,
 
     //Step 6: we receive data from the bottom
     if(rank_m != (size_m-1)){
-      double* buffer = malloc((y2-y1) * sizeof(double));
+      double* buffer = (double*)malloc((y2-y1) * sizeof(double));
       MPI_Recv(buffer, (y2-y1), MPI_DOUBLE, rank_n*(size_m)+(rank_m+1), 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       for(int j=y1; j < y2; j++){
         u[x2*n+j] = buffer[j-y1];
@@ -354,7 +354,7 @@ void ghost_exchange_u(int size_m, int size_n, int rank_m, int rank_n, double *u,
 
     // Step 7: we send data to the bottom
     if(rank_m != (size_m-1)){
-      double* buffer = malloc((y2-y1) * sizeof(double));
+      double* buffer = (double*)malloc((y2-y1) * sizeof(double));
       for(int j=y1; j < y2; j++){
         buffer[j-y1] = u[(x2-1)*n+j];
       }
@@ -363,7 +363,7 @@ void ghost_exchange_u(int size_m, int size_n, int rank_m, int rank_n, double *u,
 
     //Step 8: we receive data from the top
     if(rank_m != 0){
-      double* buffer = malloc((y2-y1) * sizeof(double));
+      double* buffer = (double*)malloc((y2-y1) * sizeof(double));
       MPI_Recv(buffer, (y2-y1), MPI_DOUBLE, rank_n*(size_m)+(rank_m-1), 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       for(int j=y1; j < y2; j++){
         u[(x1-1)*n+j] = buffer[j-y1];
