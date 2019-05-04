@@ -25,26 +25,37 @@ void step(int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2
     double fac = ih2*dt/h;
     double vx = 0;
     double vy = 0;
+    int i_zero_cond, j_zero_cond, i_cond, j_cond;
 
     /** Calculate the upwinded update for the reference map. */
     #pragma omp parallel for schedule(static)
     for(int i=x1; i < x2; i++){
       for(int j=y1; j < y2; j++){
 
-        vx = (-1.0) * (u[(i+1)*n+j]-u[(i-1)*n+j]) * fac / u[i*n+j];
-        cX[i*n*2+j*2+0] = ((i>0) && (i<m-1))*(vx > 0)*vx*(-1*X[i*n*2+j*2+0] + X[(i-1)*n*2+j*2+0])+(vx < 0)*vx*(X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0])+((i<0) || (i>m-1))*0.0;
-        cX[i*n*2+j*2+1] = ((i>0) && (i<m-1))*(vx > 0)*vx*(-1*X[i*n*2+j*2+1] + X[(i-1)*n*2+j*2+1])+(vx < 0)*vx*(X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0])+((i<0) || (i>m-1))*0.0;
+        i_cond = ((i>0)&&(i<m-1));
+        j_cond = ((j>0)&&(j<n-1));
 
+        i_zero_cond = ((i<0) || (i>m-1));
+        j_zero_cond = ((j<0) || (j>n-1));
+
+        vx = (-1.0) * (u[(i+1)*n+j]-u[(i-1)*n+j]) * fac / u[i*n+j];
         vy = (-1.0) * (u[i*n+(j+1)]-u[i*n+(j-1)]) * fac / u[i*n+j];
-        cX[i*n*2+j*2+0] += ((j>0) && (j<n-1))*(vy > 0)*vy*(-1*X[i*n*2+j*2+0]+X[i*n*2+(j-1)*2+0])+(vy < 0)*vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0])+((j<0) || (j>n-1))*0.0;
-        cX[i*n*2+j*2+1] += ((j>0) && (j<n-1))*(vy > 0)*vy*(-1*X[i*n*2+j*2+1]+X[i*n*2+(j-1)*2+1])+(vy < 0)*vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0])+((j<0) || (j>n-1))*0.0;
+
+        cX[i*n*2+j*2+0] = i_cond*(vx > 0)*vx*(-1*X[i*n*2+j*2+0] + X[(i-1)*n*2+j*2+0])+(vx < 0)*vx*(X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0])+i_zero_cond*0.0;
+        cX[i*n*2+j*2+1] = i_cond*(vx > 0)*vx*(-1*X[i*n*2+j*2+1] + X[(i-1)*n*2+j*2+1])+(vx < 0)*vx*(X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0])+i_zero_cond*0.0;
+
+        cX[i*n*2+j*2+0] += j_cond*(vy > 0)*vy*(-1*X[i*n*2+j*2+0]+X[i*n*2+(j-1)*2+0])+(vy < 0)*vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0])+j_zero_cond*0.0;
+        cX[i*n*2+j*2+1] += j_cond*(vy > 0)*vy*(-1*X[i*n*2+j*2+1]+X[i*n*2+(j-1)*2+1])+(vy < 0)*vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0])+j_zero_cond*0.0;
 
       }
     }
 
     #pragma omp parallel for schedule(static)
-    for(int i=0; i < m*n*2; i++){
-      X[i] += cX[i];
+    for(int i=x1; i < x2; i++){
+      for(int j=y1; j < y2; j++){
+        X[i*n*2+j*2+0] += cX[i*n*2+j*2+0];
+        X[i*n*2+j*2+1] += cX[i*n*2+j*2+1];
+      }
     }
 
     /* MPI updating neighbour pixels */
@@ -65,16 +76,18 @@ void step(int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2
     }
 
     #pragma omp parallel for schedule(static)
-    for(int i=0; i < m*n; i++){
-      u[i] += cu[i] * nu;
+    for(int i=x1; i < x2; i++){
+      for(int j=y1; j < y2; j++){
+        u[i*n+j] += cu[i*n+j] * nu;
+      }
     }
 
     /* MPI updating neighbour pixels */
     ghost_exchange_u(size_m,size_n,rank_m,rank_n,u,x1,y1,x2,y2,m,n);
 
     /* Print the current time and the extremal values of density */
-    //*time += dt;
-    //print_max_min(size_m,size_n,rank_m,rank_n,u,time,x1,y1,x2,y2,m,n);
+    *time += dt;
+    print_max_min(size_m,size_n,rank_m,rank_n,u,time,x1,y1,x2,y2,m,n);
 
 }
 
@@ -93,7 +106,7 @@ int main(int argc, char *argv[])
 
     /* Read in the undeformed US map. */
     int m, n; int *o;
-    o = read_map("usa_20.png", &m, &n);
+    o = read_map("usa_sm.png", &m, &n);
 
     /* Get subimage boundaries of process and print diagnostic MPI messages */
     int  x1, y1, x2, y2;
