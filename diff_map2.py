@@ -135,7 +135,7 @@ def step(dt):
 
     # Print the current time and the extremal values of density
     time+=dt
-    print(time,np.min(u),np.max(u))
+    #print(time,np.min(u),np.max(u))
 
 # Perform the integration timesteps, using the smaller dt for the first few
 # steps to deal with the large velocities that initially occur
