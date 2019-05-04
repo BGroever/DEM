@@ -23,29 +23,32 @@ void step(int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2
 
     double nu = dt/(h*h);
     double fac = ih2*dt/h;
-    double vx = 0;
-    double vy = 0;
-    int i_zero_cond, j_zero_cond, i_cond, j_cond;
+
 
     /** Calculate the upwinded update for the reference map. */
     #pragma omp parallel for schedule(static)
     for(int i=x1; i < x2; i++){
       for(int j=y1; j < y2; j++){
 
+        double vx = 0;
+        double vy = 0;
+        int pos, i_cond, j_cond;
+
         i_cond = ((i>0)&&(i<m-1));
         j_cond = ((j>0)&&(j<n-1));
 
-        i_zero_cond = ((i<0) || (i>m-1));
-        j_zero_cond = ((j<0) || (j>n-1));
+        pos = i*n+j;
 
-        vx = (-1.0) * (u[(i+1)*n+j]-u[(i-1)*n+j]) * fac / u[i*n+j];
-        vy = (-1.0) * (u[i*n+(j+1)]-u[i*n+(j-1)]) * fac / u[i*n+j];
+        vx = (-1.0) * (u[pos+n]-u[pos-n]) * fac / u[pos];
+        vy = (-1.0) * (u[pos+1]-u[pos-1]) * fac / u[pos];
 
-        cX[i*n*2+j*2+0] = i_cond*(vx > 0)*vx*(-1*X[i*n*2+j*2+0] + X[(i-1)*n*2+j*2+0])+(vx < 0)*vx*(X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0])+i_zero_cond*0.0;
-        cX[i*n*2+j*2+1] = i_cond*(vx > 0)*vx*(-1*X[i*n*2+j*2+1] + X[(i-1)*n*2+j*2+1])+(vx < 0)*vx*(X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0])+i_zero_cond*0.0;
+        pos = i*n*2+j*2;
 
-        cX[i*n*2+j*2+0] += j_cond*(vy > 0)*vy*(-1*X[i*n*2+j*2+0]+X[i*n*2+(j-1)*2+0])+(vy < 0)*vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0])+j_zero_cond*0.0;
-        cX[i*n*2+j*2+1] += j_cond*(vy > 0)*vy*(-1*X[i*n*2+j*2+1]+X[i*n*2+(j-1)*2+1])+(vy < 0)*vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0])+j_zero_cond*0.0;
+        cX[pos+0] = i_cond*((vx > 0)*vx*(-1*X[pos+0] + X[pos-2*n+0])+(!(vx > 0))*vx*(X[pos+0] - X[pos+2*n+0]));
+        cX[pos+1] = i_cond*((vx > 0)*vx*(-1*X[pos+1] + X[pos-2*n+1])+(!(vx > 0))*vx*(X[pos+1] - X[pos+2*n+1]));
+
+        cX[pos+0] += j_cond*((vy > 0)*vy*(-1*X[pos+0]+X[pos-2+0])+(!(vy > 0))*vy*(X[pos+0]-1*X[pos+2+0]));
+        cX[pos+1] += j_cond*((vy > 0)*vy*(-1*X[pos+1]+X[pos-2+1])+(!(vy > 0))*vy*(X[pos+1]-1*X[pos+2+1]));
 
       }
     }
@@ -106,7 +109,7 @@ int main(int argc, char *argv[])
 
     /* Read in the undeformed US map. */
     int m, n; int *o;
-    o = read_map("usa_sm.png", &m, &n);
+    o = read_map("usa_vs.png", &m, &n);
 
     /* Get subimage boundaries of process and print diagnostic MPI messages */
     int  x1, y1, x2, y2;
