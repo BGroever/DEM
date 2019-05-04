@@ -112,7 +112,7 @@ int main(void)
 
     /** Calculate timestep size. */
     double dt = 0.24*h*h;
-    double T  = (m*m+n*n)/12.0;
+    double T  = (m*m+n*n)/12.00;
     int nsteps = (int) ceil(T/dt);
     dt = T/nsteps;
     printf("Solving to T= %10f using %d timesteps.\n", T, nsteps);

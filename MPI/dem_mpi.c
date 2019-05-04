@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 
     /* Calculate timestep size. */
     double dt = 0.24*h*h;
-    double T  = (m*m+n*n)/12.00;
+    double T  = (m*m+n*n)/12.0;
     int nsteps = (int) ceil(T/dt);
     dt = T/nsteps;
     if(rank==0){
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
     for(int l=0; l < 24; l++){
       step(size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt/24.0, &time, u, cu, X, cX, h, ih2, m, n);
     }
-    for(int l=1; l < nsteps;l++){
+    for(int l=1; l < 400;l++){
       step(size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt     , &time, u, cu, X, cX, h, ih2, m, n);
     }
 

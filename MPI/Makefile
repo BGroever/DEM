@@ -9,7 +9,7 @@ openmp=-O3 -fopenmp -pedantic -Wall #-fopt-info-vec-missed -g
 # Flags for PNG library
 png_lflags=-lm -lpng -I/usr/local/include -L/usr/local/lib
 
-execs=exec.x exec.openmp
+execs=exec.x exec.openmp exec.mpi
 
 all: $(execs)
 
@@ -19,8 +19,8 @@ clean:
 exec.x: dem_serial.c
 	$(cxx) $(cflags) -o $@ $^ $(png_lflags)
 
-#exec.mpi: dem_mpi.c
-#	$(mpi) $(cflags) -o $@ $^ $(png_lflags)
+exec.mpi: dem_mpi.c
+	$(mpi) $(cflags) -o $@ $^ $(png_lflags)
 
 exec.openmp: dem_openmp.c
 	$(mpi) $(openmp) -o $@ $^ $(png_lflags)
