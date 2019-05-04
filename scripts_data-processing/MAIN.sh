@@ -11,11 +11,25 @@
 
 
 mode=$1
+this=MAIN.sh
 
 data_src=raw_data
 pyspark_src=pyspark_scripts
 
 echo $mode
+
+#-------------------------------
+# DATSET: CARDIOVASCULAR DISEASE
+#-------------------------------
+if [ $mode == 'all' ]
+then
+    sh $this disease
+    sh $this uv
+    sh $this ozone
+    sh $this pm
+fi
+#-------------------------------
+
 
 #-------------------------------
 # DATSET: CARDIOVASCULAR DISEASE
@@ -115,7 +129,7 @@ then
 
     spark-submit $runFile
 
-    dataYears=(2011JAN 2011FEB 2011MAR 2011APR 2011MAY 2011JUN 2011JUL 2011AUG 2011SEP 2011OCT 2011NOV 2011DEC)
+    dataYears=(2011JAN 2011FEB 2011MAR 2011APR 2011MAY 2011JUN 2011JUL 2011AUG 2011SEP 2011OCT 2011NOV 2011DEC 2012JAN 2012FEB 2012MAR 2012APR 2012MAY 2012JUN 2012JUL 2012AUG 2012SEP 2012OCT 2012NOV 2012DEC 2013JAN 2013FEB 2013MAR 2013APR 2013MAY 2013JUN 2013JUL 2013AUG 2013SEP 2013OCT 2013NOV 2013DEC 2014JAN 2014FEB 2014MAR 2014APR 2014MAY 2014JUN 2014JUL 2014AUG 2014SEP 2014OCT 2014NOV 2014DEC)
 
     for year in ${dataYears[@]}
         do
