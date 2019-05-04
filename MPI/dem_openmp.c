@@ -65,15 +65,14 @@ void step(int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2
     ghost_exchange_X(size_m, size_n, rank_m, rank_n, X, x1, y1, x2, y2, m, n);
 
     /* Do the finite-difference update */
-    double tem;
-    int k;
-
     //#pragma omp simd
     #pragma omp parallel for schedule(static)
     for (int i=x1; i<x2; i++) {
         for (int j=y1; j<y2; j++) {
-          tem = (i>0)*u[(i-1)*n+j] + (i<0)*0.0 + (j>0)*u[i*n+(j-1)] + (j<n-1)*u[i*n+(j+1)] + (i<m-1)*u[(i+1)*n+j];
-          k   = (i>0)*1 + (i<0)*0 + (j>0) + (j<n-1) + (i<m-1);
+          double tem;
+          int k;
+          tem = (i>0)*u[(i-1)*n+j] + (j>0)*u[i*n+(j-1)] + (j<n-1)*u[i*n+(j+1)] + (i<m-1)*u[(i+1)*n+j];
+          k   = (i>0) + (j>0) + (j<n-1) + (i<m-1);
           cu[i*n+j] = tem - k * u[i*n+j];
         }
     }
@@ -158,7 +157,7 @@ int main(int argc, char *argv[])
     for(int l=0; l < 24; l++){
       step(size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt/24.0, &time, u, cu, X, cX, h, ih2, m, n);
     }
-    for(int l=1; l < nsteps;l++){
+    for(int l=1; l < 400;l++){
       step(size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt     , &time, u, cu, X, cX, h, ih2, m, n);
     }
 

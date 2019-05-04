@@ -300,8 +300,9 @@ void save_map(int* o, double* X){
 
       for (int i=0; i<height; i++) {
           for (int j=0; j<width; j++) {
-            i2=(int) X[i*width*2+j*2+0]+0.5;
-            j2=(int) X[i*width*2+j*2+1]+0.5;
+
+            i2=(int) (X[i*width*2+j*2+0]+0.5);
+            j2=(int) (X[i*width*2+j*2+1]+0.5);
 
             if (i2<0) {
               i2 = 0;
