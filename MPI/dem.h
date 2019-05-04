@@ -144,7 +144,7 @@ int* read_map(char* pngfile, int* m, int* n)
   read_png_file(pngfile);
 
   int z = 3;
-  int *o = malloc(height*width*z * sizeof(int));
+  int *o = (int*)malloc(height*width*z * sizeof(int));
   for(int i = 0; i < height; i++) {
     png_bytep row = row_pointers[i];
     for(int j = 0; j < width; j++) {
@@ -296,7 +296,7 @@ void save_map(int* o, double* X){
       int i2;
       int j2;
       int z = 3;
-      int *o2 = malloc(height*width*z * sizeof(int));
+      int *o2 = (int*)malloc(height*width*z * sizeof(int));
 
       for (int i=0; i<height; i++) {
           for (int j=0; j<width; j++) {
