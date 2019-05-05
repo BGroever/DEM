@@ -1,7 +1,6 @@
 /*
 CS205 project:    Density equalizing map projections
-Date:             April 6th 2019
-Compiler:         gcc diff_map2.c -o exec -lm -lpng
+Date:             May 9th 2019
 project members:  Millie Zhou, Lemaire Baptiste, Benedikt Groever
 project goal:     density equalizing map DEM projections
 Input files:      -colchart.txt
@@ -26,30 +25,26 @@ void step(int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2
     double fac = ih2*dt/h;
     double vx = 0;
     double vy = 0;
-    int i_cond, j_cond;
+
     /** Calculate the upwinded update for the reference map. */
+    #pragma omp parallel for schedule(static)
     for(int i=x1; i < x2; i++){
       for(int j=y1; j < y2; j++){
+
         vx = (-1.0) * (u[(i+1)*n+j]-u[(i-1)*n+j]) * fac / u[i*n+j];
+        cX[i*n*2+j*2+0] = ((i>0) && (i<m-1))*(vx > 0)*vx*(-1*X[i*n*2+j*2+0] + X[(i-1)*n*2+j*2+0])+(vx < 0)*vx*(X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0])+((i<0) || (i>m-1))*0.0;
+        cX[i*n*2+j*2+1] = ((i>0) && (i<m-1))*(vx > 0)*vx*(-1*X[i*n*2+j*2+1] + X[(i-1)*n*2+j*2+1])+(vx < 0)*vx*(X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0])+((i<0) || (i>m-1))*0.0;
+
         vy = (-1.0) * (u[i*n+(j+1)]-u[i*n+(j-1)]) * fac / u[i*n+j];
-	i_cond = ((i>0)&&(i<m-1));
-	j_cond = ((j>0)&&(j<n-1));
-        cX[i*n*2+j*2+0]	= i_cond*((vx>0) *vx*(-1*X[i*n*2+j*2+0]+X[(i-1)*n*2+j*2+0])
-			       +(!(vx>0))*vx*( X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0]))
-			 +j_cond*((vy>0) *vy*(-1*X[i*n*2+j*2+0]+X[i*n*2+(j-1)*2+0])
-			       +(!(vy>0))*vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0]));		
-        cX[i*n*2+j*2+1] = i_cond*((vx>0) *vx*(-1*X[i*n*2+j*2+1] + X[(i-1)*n*2+j*2+1])
-			       +(!(vx>0))*vx*(   X[i*n*2+j*2+1] - X[(i+1)*n*2+j*2+1]))
-			 +j_cond*((vy>0) *vy*(-1*X[i*n*2+j*2+1]+X[i*n*2+(j-1)*2+1])
-			       +(!(vy>0))*vy*(X[i*n*2+j*2+1]-1*X[i*n*2+(j+1)*2+1]));
+        cX[i*n*2+j*2+0] += ((j>0) && (j<n-1))*(vy > 0)*vy*(-1*X[i*n*2+j*2+0]+X[i*n*2+(j-1)*2+0])+(vy < 0)*vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0])+((j<0) || (j>n-1))*0.0;
+        cX[i*n*2+j*2+1] += ((j>0) && (j<n-1))*(vy > 0)*vy*(-1*X[i*n*2+j*2+1]+X[i*n*2+(j-1)*2+1])+(vy < 0)*vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0])+((j<0) || (j>n-1))*0.0;
+
       }
     }
-    
-    for(int i=x1; i < x2; i++){
-      for(int j=y1; j < y2; j++){
-        X[i*n*2+j*2+0] += cX[i*n*2+j*2+0];
-        X[i*n*2+j*2+1] += cX[i*n*2+j*2+1];
-      }
+
+    #pragma omp parallel for schedule(static)
+    for(int i=0; i < m*n*2; i++){
+      X[i] += cX[i];
     }
 
     /* MPI updating neighbour pixels */
@@ -58,29 +53,27 @@ void step(int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2
     /* Do the finite-difference update */
     double tem;
     int k;
+
+    //#pragma omp simd
+    #pragma omp parallel for schedule(static)
     for (int i=x1; i<x2; i++) {
         for (int j=y1; j<y2; j++) {
-	    tem = (i>0)  *u[(i-1)*n+j]
-		 +(j>0)  *u[i*n+(j-1)]
-		 +(j<n-1)*u[i*n+(j+1)]
-		 +(i<m-1)*u[(i+1)*n+j];
-	    k   =  (i>0) + (j>0) + (j<n-1) + (i<m-1);
-            cu[i*n+j] = tem - k * u[i*n+j];
+          tem = (i>0)*u[(i-1)*n+j] + (i<0)*0.0 + (j>0)*u[i*n+(j-1)] + (j<n-1)*u[i*n+(j+1)] + (i<m-1)*u[(i+1)*n+j];
+          k   = (i>0)*1 + (i<0)*0 + (j>0) + (j<n-1) + (i<m-1);
+          cu[i*n+j] = tem - k * u[i*n+j];
         }
     }
 
-
-    for(int i=x1; i < x2; i++){
-      for(int j=y1; j < y2; j++){
-        u[i*n+j] += cu[i*n+j] * nu;
-      }
+    #pragma omp parallel for schedule(static)
+    for(int i=0; i < m*n; i++){
+      u[i] += cu[i] * nu;
     }
 
     /* MPI updating neighbour pixels */
     ghost_exchange_u(size_m,size_n,rank_m,rank_n,u,x1,y1,x2,y2,m,n);
 
     /* Print the current time and the extremal values of density */
-    *time += dt;
+    //*time += dt;
     //print_max_min(size_m,size_n,rank_m,rank_n,u,time,x1,y1,x2,y2,m,n);
 
 }
@@ -90,28 +83,32 @@ int main(int argc, char *argv[])
 {
 
     /* Initialize MPI */
-    int rank, size;
-    MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    int rank=0, size, provided;
+//    MPI_Init_thread(&argc,&argv, MPI_THREAD_MULTIPLE, &provided);
+//    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//    MPI_Comm_size(MPI_COMM_WORLD, &size);
 
     double t1, t2, t3, t4;
     t1 = MPI_Wtime();
 
     /* Read in the undeformed US map. */
     int m, n; int *o;
-    o = read_map("usa_lg.png", &m, &n);
+    o = read_map("usa_20.png", &m, &n);
 
     /* Get subimage boundaries of process and print diagnostic MPI messages */
     int  x1, y1, x2, y2;
-    setup_mpi(rank, &size, & x1, &y1, &x2, &y2, m, n);
+//    setup_mpi(rank, &size, & x1, &y1, &x2, &y2, m, n);
+    if(rank==0){ printf("Image size is (%d,%d)\n", m, n);}
+//    MPI_Barrier(MPI_COMM_WORLD);
+    int nthreads = omp_get_max_threads();
+    printf("rank %d has %d\n", rank, nthreads);
 
     int rank_m, rank_n, size_m, size_n;
     get_position(size, rank, &rank_m, &rank_n, &size_m, &size_n);
 
     /* Get density data from quantity of interest data and color bar codes */
-    double *u = malloc(m*n * sizeof(double));
-    double *cu = malloc(m*n * sizeof(double));
+    double *u = (double*)malloc(m*n * sizeof(double));
+    double *cu = (double*)malloc(m*n * sizeof(double));
     image_to_density_map(o, u, "colchart.txt", "density.txt", SIZE, rank);
 
     /** Grid spacing. */
@@ -119,8 +116,8 @@ int main(int argc, char *argv[])
     double ih2 = 0.5/h;
 
     /** Initialize the reference map coordinates. */
-    double *X = malloc(m*n*2 * sizeof(double));
-    double *cX = malloc(m*n*2 * sizeof(double));
+    double *X = (double*)malloc(m*n*2 * sizeof(double));
+    double *cX = (double*)malloc(m*n*2 * sizeof(double));
     for(int i=0; i < m; i++){
       for(int j=0; j < n; j++){
         X[i*n*2+j*2+0] = h*i;
@@ -143,16 +140,16 @@ int main(int argc, char *argv[])
     few steps to deal with the large velocities that initially occur. */
     double time = 0;
     for(int l=0; l < 24; l++){
-      cuda_step(size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt/24.0, &time, u, cu, X, cX, h, ih2, m, n);
+      step(size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt/24.0, &time, u, cu, X, cX, h, ih2, m, n);
     }
     for(int l=1; l < nsteps;l++){
-      cuda_step(size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt     , &time, u, cu, X, cX, h, ih2, m, n);
+      step(size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt     , &time, u, cu, X, cX, h, ih2, m, n);
     }
 
     t3 = MPI_Wtime();
 
     /* worker node send reference map to master which saves the png */
-    send_receive_save(rank, size, o, X,  x1, y1, x2, y2, m, n);
+//    send_receive_save(rank, size, o, X,  x1, y1, x2, y2, m, n);
 
     t4 = MPI_Wtime();
 
@@ -162,7 +159,11 @@ int main(int argc, char *argv[])
       printf("Postprocessing and saving data : %f s\n", t4-t3);
     }
 
-    MPI_Finalize();
+//    MPI_Finalize();
+    free(u);
+    free(cu);
+    free(X);
+    free(cX);
     return 0;
 
 }
