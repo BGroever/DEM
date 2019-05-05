@@ -88,7 +88,7 @@ void step(int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2
 
     /* Print the current time and the extremal values of density */
     *time += dt;
-    print_max_min(size_m,size_n,rank_m,rank_n,u,time,x1,y1,x2,y2,m,n);
+    //print_max_min(size_m,size_n,rank_m,rank_n,u,time,x1,y1,x2,y2,m,n);
 
 }
 
@@ -114,10 +114,11 @@ int main(int argc, char *argv[])
     /* Get subimage boundaries of process and print diagnostic MPI messages */
     int  x1, y1, x2, y2;
     setup_mpi(rank, &size, & x1, &y1, &x2, &y2, m, n);
-    if(rank==0){ printf("Image size is (%d,%d)\n", m, n);}
-    MPI_Barrier(MPI_COMM_WORLD);
+    if(rank==0){printf("Image size is (%d,%d)\n", m, n);}
     int nthreads = omp_get_max_threads();
-    printf("rank %d has %d\n", rank, nthreads);
+    MPI_Barrier(MPI_COMM_WORLD);
+    printf("MPI rank %d has %d omp processes\n", rank, nthreads);
+    MPI_Barrier(MPI_COMM_WORLD);
 
     int rank_m, rank_n, size_m, size_n;
     get_position(size, rank, &rank_m, &rank_n, &size_m, &size_n);
@@ -166,6 +167,7 @@ int main(int argc, char *argv[])
 
     /* worker node send reference map to master which saves the png */
     send_receive_save(rank, size, o, X,  x1, y1, x2, y2, m, n);
+    print_max_min(size_m,size_n,rank_m,rank_n,u,&time,x1,y1,x2,y2,m,n);
 
     t4 = MPI_Wtime();
 

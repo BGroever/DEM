@@ -275,7 +275,7 @@ void image_to_density_map(int* o, double* u, char* colorfile, char* densityFile,
          in regions outside the states. */
       double rhobar=srho/npts;
       if(rank==0){
-        printf("Avg. rho: %f\n", rhobar);
+        printf("\nAvg. rho: %f\n", rhobar);
       }
       for(int i=0; i < height; i++){
         for(int j=0; j < width; j++){
