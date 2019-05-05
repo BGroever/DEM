@@ -12,7 +12,7 @@ gpng_lflags=-lpng -Xptxas -O3
 
 objs=dem_mpi_gpu.o
 src=$(patsubst %.o,%.c,$(objs))
-execs=exe_mpi.x exe_ser.x exe_openmp.x exe_gpu.x
+execs=exe_gpu.x #exe_mpi.x exe_ser.x exe_openmp.x 
 
 executables: $(execs)
 
@@ -25,14 +25,14 @@ dem_mpi_gpu.o: dem_mpi_gpu.c
 clean:
 	rm -f $(execs) $(objs)
 
-exe_mpi.x: dem_mpi.c
-	$(cxx) $(cflags) -o $@ $^ $(png_lflags)
+#exe_mpi.x: dem_mpi.c
+#	$(cxx) $(cflags) -o $@ $^ $(png_lflags)
 
-exe_ser.x: dem_serial.c
-	$(cxx) $(cflags) -o $@ $^ $(png_lflags)
+#exe_ser.x: dem_serial.c
+#	$(cxx) $(cflags) -o $@ $^ $(png_lflags)
 
-exe_openmp.x: dem_openmp.c
-	$(cxx) $(cflags) -o $@ $^ $(png_lflags)
+#exe_openmp.x: dem_openmp.c
+#	$(cxx) $(cflags) -o $@ $^ $(png_lflags)
 
 exe_gpu.x: dem_cuda.cu dem_mpi_gpu.o 
 	$(nxx) $(gflags) -o $@ $^ $(gpng_lflags)
