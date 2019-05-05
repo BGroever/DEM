@@ -1,6 +1,7 @@
 /*
 CS205 project:    Density equalizing map projections
-Date:             May 9th 2019
+Date:             April 6th 2019
+Compiler:         gcc diff_map2.c -o exec -lm -lpng
 project members:  Millie Zhou, Lemaire Baptiste, Benedikt Groever
 project goal:     density equalizing map DEM projections
 Input files:      -colchart.txt
@@ -24,9 +25,8 @@ void step(int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2
     double nu = dt/(h*h);
     double fac = ih2*dt/h;
 
-
     /** Calculate the upwinded update for the reference map. */
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel for schedule(static) shared(fac, u, cX, X, m, n)
     for(int i=x1; i < x2; i++){
       for(int j=y1; j < y2; j++){
 
@@ -53,7 +53,7 @@ void step(int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2
       }
     }
 
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel for schedule(static) shared(cX, X, n)
     for(int i=x1; i < x2; i++){
       for(int j=y1; j < y2; j++){
         X[i*n*2+j*2+0] += cX[i*n*2+j*2+0];
@@ -65,8 +65,7 @@ void step(int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2
     ghost_exchange_X(size_m, size_n, rank_m, rank_n, X, x1, y1, x2, y2, m, n);
 
     /* Do the finite-difference update */
-    //#pragma omp simd
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel for schedule(static) shared(cu, u, m, n)
     for (int i=x1; i<x2; i++) {
         for (int j=y1; j<y2; j++) {
           double tem;
@@ -77,7 +76,7 @@ void step(int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2
         }
     }
 
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel for schedule(static) shared(cu, u, nu, n)
     for(int i=x1; i < x2; i++){
       for(int j=y1; j < y2; j++){
         u[i*n+j] += cu[i*n+j] * nu;
@@ -98,6 +97,8 @@ int main(int argc, char *argv[])
 {
 
     /* Initialize MPI */
+    // int rank, size;
+    // MPI_Init(&argc, &argv);
     int rank, size, provided;
     MPI_Init_thread(&argc,&argv, MPI_THREAD_MULTIPLE, &provided);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -142,7 +143,7 @@ int main(int argc, char *argv[])
 
     /* Calculate timestep size. */
     double dt = 0.24*h*h;
-    double T  = (m*m+n*n)/12.00;
+    double T  = (m*m+n*n)/12.0;
     int nsteps = (int) ceil(T/dt);
     dt = T/nsteps;
     if(rank==0){
