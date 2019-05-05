@@ -20,45 +20,38 @@ Output file:      -dens_eq.png
 #define SIZE 50
 
 /** Function to integrate the density and reference map fields forward in time by dt. */
-void step(int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2, int y2, double dt, double *time, double *u, double *cu, double *X, double *cX, double h, double ih2, int m, int n) {
+void step(int im_size, int* pos_X, int* pos_u, int* i_cond, int* j_cond, int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2, int y2, double dt, double *time, double *u, double *cu, double *X, double *cX, double h, double ih2, int m, int n) {
 
     double nu = dt/(h*h);
     double fac = ih2*dt/h;
 
     /** Calculate the upwinded update for the reference map. */
-    #pragma omp parallel for schedule(static) shared(fac, u, cX, X, m, n)
-    for(int i=x1; i < x2; i++){
-      for(int j=y1; j < y2; j++){
+    #pragma omp parallel for schedule(guided) shared(im_size, pos_X, pos_u, i_cond, j_cond, fac, u, cX, X, n)
+    for(int i=0; i < im_size; i++){
+      double vx = 0;
+      double vy = 0;
+      int pos;
 
-        double vx = 0;
-        double vy = 0;
-        int pos, i_cond, j_cond;
+      pos = pos_u[i];
 
-        i_cond = ((i>0)&&(i<m-1));
-        j_cond = ((j>0)&&(j<n-1));
+      vx = (-1.0) * (u[pos+n]-u[pos-n]) * fac / u[pos];
+      vy = (-1.0) * (u[pos+1]-u[pos-1]) * fac / u[pos];
 
-        pos = i*n+j;
+      pos = pos_X[i];
 
-        vx = (-1.0) * (u[pos+n]-u[pos-n]) * fac / u[pos];
-        vy = (-1.0) * (u[pos+1]-u[pos-1]) * fac / u[pos];
+      cX[pos+0] = i_cond[i]*((vx > 0)*vx*(-1*X[pos+0] + X[pos-2*n+0])+(!(vx > 0))*vx*(X[pos+0] - X[pos+2*n+0]));
+      cX[pos+1] = i_cond[i]*((vx > 0)*vx*(-1*X[pos+1] + X[pos-2*n+1])+(!(vx > 0))*vx*(X[pos+1] - X[pos+2*n+1]));
 
-        pos = i*n*2+j*2;
+      cX[pos+0] += j_cond[i]*((vy > 0)*vy*(-1*X[pos+0]+X[pos-2+0])+(!(vy > 0))*vy*(X[pos+0]-1*X[pos+2+0]));
+      cX[pos+1] += j_cond[i]*((vy > 0)*vy*(-1*X[pos+1]+X[pos-2+1])+(!(vy > 0))*vy*(X[pos+1]-1*X[pos+2+1]));
 
-        cX[pos+0] = i_cond*((vx > 0)*vx*(-1*X[pos+0] + X[pos-2*n+0])+(!(vx > 0))*vx*(X[pos+0] - X[pos+2*n+0]));
-        cX[pos+1] = i_cond*((vx > 0)*vx*(-1*X[pos+1] + X[pos-2*n+1])+(!(vx > 0))*vx*(X[pos+1] - X[pos+2*n+1]));
-
-        cX[pos+0] += j_cond*((vy > 0)*vy*(-1*X[pos+0]+X[pos-2+0])+(!(vy > 0))*vy*(X[pos+0]-1*X[pos+2+0]));
-        cX[pos+1] += j_cond*((vy > 0)*vy*(-1*X[pos+1]+X[pos-2+1])+(!(vy > 0))*vy*(X[pos+1]-1*X[pos+2+1]));
-
-      }
     }
 
+
     #pragma omp parallel for schedule(static) shared(cX, X, n)
-    for(int i=x1; i < x2; i++){
-      for(int j=y1; j < y2; j++){
-        X[i*n*2+j*2+0] += cX[i*n*2+j*2+0];
-        X[i*n*2+j*2+1] += cX[i*n*2+j*2+1];
-      }
+    for(int i=0; i < im_size; i++){
+      X[pos_X[i]+0] += cX[pos_X[i]+0];
+      X[pos_X[i]+1] += cX[pos_X[i]+1];
     }
 
     /* MPI updating neighbour pixels */
@@ -97,8 +90,6 @@ int main(int argc, char *argv[])
 {
 
     /* Initialize MPI */
-    // int rank, size;
-    // MPI_Init(&argc, &argv);
     int rank, size, provided;
     MPI_Init_thread(&argc,&argv, MPI_THREAD_MULTIPLE, &provided);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -151,16 +142,32 @@ int main(int argc, char *argv[])
       printf("Solving to T= %10f using %d timesteps.\n", T, nsteps);
     }
 
+    /* Initialize index vectors */
+    int im_size = (y2-y1)*(x2-x1);
+    int *pos_X = (int*)malloc(im_size * sizeof(int));
+    int *pos_u = (int*)malloc(im_size * sizeof(int));
+    int *i_cond = (int*)malloc(im_size * sizeof(int));
+    int *j_cond = (int*)malloc(im_size * sizeof(int));
+
+    for(int i=x1; i < x2; i++){
+      for(int j=y1; j < y2; j++){
+        pos_X[(i-x1)*(j-y1)] = i*n*2+j*2;
+        pos_u[(i-x1)*(j-y1)] = i*n+j;
+        i_cond[(i-x1)*(j-y1)] = ((i>0)&&(i<m-1));
+        j_cond[(i-x1)*(j-y1)] = ((j>0)&&(j<n-1));
+      }
+    }
+
     t2 = MPI_Wtime();
 
     /*  Perform the integration timesteps, using the smaller dt for the first
     few steps to deal with the large velocities that initially occur. */
     double time = 0;
     for(int l=0; l < 24; l++){
-      step(size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt/24.0, &time, u, cu, X, cX, h, ih2, m, n);
+      step(im_size, pos_X, pos_u, i_cond, j_cond, size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt/24.0, &time, u, cu, X, cX, h, ih2, m, n);
     }
     for(int l=1; l < nsteps;l++){
-      step(size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt     , &time, u, cu, X, cX, h, ih2, m, n);
+      step(im_size, pos_X, pos_u, i_cond, j_cond, size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt     , &time, u, cu, X, cX, h, ih2, m, n);
     }
 
     t3 = MPI_Wtime();
