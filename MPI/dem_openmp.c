@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
     /* Get density data from quantity of interest data and color bar codes */
     double *u = (double*)malloc(m*n * sizeof(double));
     double *cu = (double*)malloc(m*n * sizeof(double));
-    image_to_density_map(o, u, "colchart_counties.txt", "den_per_county.txt", SIZE, rank);
+    image_to_density_map(o, u, argv[2], argv[3], SIZE, rank);
 
     /** Grid spacing. */
     double h   = 1.00;
