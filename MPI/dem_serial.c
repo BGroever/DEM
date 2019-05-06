@@ -15,7 +15,7 @@ Output file:      -dens_eq.png
 #include <omp.h>
 
 // Number of states/entities to calculates:
-#define SIZE 50
+#define SIZE 3142
 
 /** Function to integrate the density and reference map fields forward in time by dt. */
 void step(double dt, double *time, double *u, double *cu, double *X, double *cX, double h, double ih2, int m, int n) {
@@ -79,6 +79,26 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
     /* Print the current time and the extremal values of density */
     *time += dt;
 
+    double minU=16777215;
+    for (int i=0; i<m; i++) {
+      for (int j=0; j<n; j++) {
+        if (u[i*n+j] < minU) {
+          minU = u[i*n+j];
+        }
+      }
+    }
+
+    double maxU=0.00;
+    for (int i=0; i<m; i++) {
+      for (int j=0; j<n; j++) {
+        if (u[i*n+j] > maxU) {
+          maxU = u[i*n+j];
+        }
+      }
+    }
+
+    printf("%f, %f, %f \n", *time, minU, maxU);
+
 }
 
 
@@ -88,13 +108,13 @@ int main(void)
 
     /* Read in the undeformed US map. */
     int m, n; int *o;
-    o = read_map("usa_vs.png", &m, &n);
+    o = read_map("uscounties20.png", &m, &n);
 
 
     /* Get density data from image and color bar code */
     double *u = (double*)malloc(m*n * sizeof(double));
     double *cu = (double*)malloc(m*n * sizeof(double));
-    image_to_density_map(o, u, "colchart.txt", "density.txt", SIZE, 0);
+    image_to_density_map(o, u, "colchart_counties.txt", "den_per_county.txt", SIZE, 0);
 
     /** Grid spacing. */
     double h   = 1.0;
@@ -127,26 +147,6 @@ int main(void)
     for(int l=1; l < nsteps;l++){
       step(dt,      &time, u, cu, X, cX, h, ih2, m, n);
     }
-
-    double minU=16777215;
-    for (int i=0; i<m; i++) {
-      for (int j=0; j<n; j++) {
-        if (u[i*n+j] < minU) {
-          minU = u[i*n+j];
-        }
-      }
-    }
-
-    double maxU=0.00;
-    for (int i=0; i<m; i++) {
-      for (int j=0; j<n; j++) {
-        if (u[i*n+j] > maxU) {
-          maxU = u[i*n+j];
-        }
-      }
-    }
-
-    printf("%f, %f, %f \n", time, minU, maxU);
 
     save_map(o, X);
 

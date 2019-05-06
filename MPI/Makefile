@@ -4,7 +4,7 @@ mpi=mpicc
 
 # Compilation flags
 cflags=-O3 #-pedantic -Wall
-openmp=-O3 -fopenmp -pedantic -Wall #-fopt-info-vec-missed # -g
+openmp=-O3 -fopenmp #-pedantic -Wall #-fopt-info-vec-missed # -g
 
 # Flags for PNG library
 png_lflags=-lm -lpng -I/usr/local/include -L/usr/local/lib
