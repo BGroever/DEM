@@ -28,7 +28,7 @@ and similary for the USA state map as:
 ```Bash
 mpirun -np 2 -hosts master,node1 -genv OMP_NUM_THREADS 2 ./exec.openmp "usa10.png" "col_state.txt" "states.txt" "ouput.png"
 ```
-The files 'openmp.sh' and 'mpi.sh' generate the speedup diagram on Odyssey with the command:
+The files `openmp.sh` and `openmp.sh` generate the MPI/OpenMP speedup diagram on Odyssey with the command:
 ```Bash
 sbatch openmp.sh
 ```
