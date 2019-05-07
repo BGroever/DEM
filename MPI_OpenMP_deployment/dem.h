@@ -136,6 +136,9 @@ void write_png_file(char *filename)
     free(row_pointers);
 
     fclose(fp);
+
+    if (png && info)
+        png_destroy_write_struct(&png, &info);
 }
 
 int* read_map(char* pngfile, int* m, int* n)
@@ -157,6 +160,8 @@ int* read_map(char* pngfile, int* m, int* n)
 
   *m = height;
   *n = width;
+
+  write_png_file(pngfile);
 
   return o;
 
@@ -184,9 +189,9 @@ void image_to_density_map(int* o, double* u, char* colorfile, char* densityFile,
             }
 
             // Read in the three color channels.
-            int re = atoi(a[0]);
-            int gr = atoi(a[1]);
-            int bl = atoi(a[2]);
+            int re = atof(a[0]);
+            int gr = atof(a[1]);
+            int bl = atof(a[2]);
 
             /** Read in the name of the state, taking care to handle to
               * states space in them. */
@@ -242,14 +247,13 @@ void image_to_density_map(int* o, double* u, char* colorfile, char* densityFile,
           * c  - string array for the name of the states
           * d  - unique bar code for each state (RGB) = R+256*G+65536*B
           * rh[k] - population density of state c[k]. */
-        /**
-          for(int j=0; j<SIZE; j++){
-          printf("%s, %d, %f\n", c[j], d[j], rh[j]);
-        }*/
+
+        // for(int j=0; j<3142; j++){
+        //   printf("%s, %d, %f\n", c[j], d[j], rh[j]);
+        // }
 
         /** Scan the image to set the density field in the states.
           * In addition, calculate the average density. */
-        //double *u = malloc(height*width * sizeof(double));
         double srho = 0.0;
         int npts = 0;
         int co;
@@ -290,7 +294,9 @@ void image_to_density_map(int* o, double* u, char* colorfile, char* densityFile,
 
 }
 
-void save_map(int* o, double* X){
+void save_map(int* o, double* X, char* pngfile, char* outputfile){
+
+      read_png_file(pngfile);
 
       /** Use the deformed reference map to plot the density-equalized US map. */
       int i2;
@@ -333,5 +339,5 @@ void save_map(int* o, double* X){
         }
       }
 
-      write_png_file("dens_eq.png");
+      write_png_file(outputfile);
 }

@@ -1,3 +1,4 @@
+
 /*
 CS205 project:    Density equalizing map projections
 Date:             April 6th 2019
@@ -32,7 +33,7 @@ void step(int msteps, int size_m, int size_n, int rank_m, int rank_n, int x1, in
       #pragma omp parallel for schedule(static) shared(fac, u, cX, X, m, n)
       for(int i=x1; i < x2; i++){
         int j;
-        for(j=y1; j < ROUND_DOWN(y2,2); j+=2){
+        for(j=y1; j < y2; j++){ //ROUND_DOWN(y2,2); j+=2){
 
           double vx = 0;
           double vy = 0;
@@ -46,46 +47,72 @@ void step(int msteps, int size_m, int size_n, int rank_m, int rank_n, int x1, in
           pos = i*n*2+j*2;
           leqx = (vx > 0);
           leqy = (vy > 0);
-          cX[pos+0] = i_cond*(leqx*vx*(-1*X[pos+0] + X[pos-2*n+0])+(!leqx)*vx*(X[pos+0] - X[pos+2*n+0]));
-          cX[pos+1] = i_cond*(leqx*vx*(-1*X[pos+1] + X[pos-2*n+1])+(!leqx)*vx*(X[pos+1] - X[pos+2*n+1]));
-          cX[pos+0] += j_cond*(leqy*vy*(-1*X[pos+0]+X[pos-2+0])+(!leqy)*vy*(X[pos+0]-1*X[pos+2+0]));
-          cX[pos+1] += j_cond*(leqy*vy*(-1*X[pos+1]+X[pos-2+1])+(!leqy)*vy*(X[pos+1]-1*X[pos+2+1]));
+          cX[pos+0] = i_cond  * (leqx*vx*(-1*X[pos+0] + X[pos-2*n+0]) + (!leqx) * vx * (X[pos+0] - X[pos+2*n+0]));
+          cX[pos+1] = i_cond  * (leqx*vx*(-1*X[pos+1] + X[pos-2*n+1]) + (!leqx) * vx * (X[pos+1] - X[pos+2*n+1]));
+          cX[pos+0] += j_cond * (leqy*vy*(-1*X[pos+0] + X[pos-2+0])   + (!leqy) * vy * (X[pos+0]-1*X[pos+2+0]));
+          cX[pos+1] += j_cond * (leqy*vy*(-1*X[pos+1] + X[pos-2+1])   + (!leqy) * vy * (X[pos+1]-1*X[pos+2+1]));
 
-          i_cond = ((i>0)&&(i<m-1));
-          j_cond = ((j+1>0)&&(j+1<n-1));
-          pos = i*n+j+1;
-          vx = (-1.0) * (u[pos+n]-u[pos-n]) * fac / u[pos];
-          vy = (-1.0) * (u[pos+1]-u[pos-1]) * fac / u[pos];
-          pos = i*n*2+j*2+1;
-          leqx = (vx > 0);
-          leqy = (vy > 0);
-          cX[pos+0] = i_cond*(leqx*vx*(-1*X[pos+0] + X[pos-2*n+0])+(!leqx)*vx*(X[pos+0] - X[pos+2*n+0]));
-          cX[pos+1] = i_cond*(leqx*vx*(-1*X[pos+1] + X[pos-2*n+1])+(!leqx)*vx*(X[pos+1] - X[pos+2*n+1]));
-          cX[pos+0] += j_cond*(leqy*vy*(-1*X[pos+0]+X[pos-2+0])+(!leqy)*vy*(X[pos+0]-1*X[pos+2+0]));
-          cX[pos+1] += j_cond*(leqy*vy*(-1*X[pos+1]+X[pos-2+1])+(!leqy)*vy*(X[pos+1]-1*X[pos+2+1]));
+          // if ((i>0) && (i<m-1)) {
+          //   vx = (-1.0) * (u[(i+1)*n+j]-u[(i-1)*n+j]) * fac / u[i*n+j];
+          //   //if(u[i*n+j] == 0){printf("DIVIDE BY ZERO");}
+          //   if (vx > 0) {
+          //     cX[i*n*2+j*2+0] = vx*(-1*X[i*n*2+j*2+0] + X[(i-1)*n*2+j*2+0]);
+          //     cX[i*n*2+j*2+1] = vx*(-1*X[i*n*2+j*2+1] + X[(i-1)*n*2+j*2+1]);
+          //   }else{
+          //     cX[i*n*2+j*2+0] = vx*(   X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0]);
+          //     cX[i*n*2+j*2+1] = vx*(   X[i*n*2+j*2+1] - X[(i+1)*n*2+j*2+1]);
+          //   }
+          // }else{
+          //     cX[i*n*2+j*2+0] = 0.0;
+          //     cX[i*n*2+j*2+1] = 0.0;
+          // }
+          //
+          // if ( (j>0) && (j<n-1)) {
+          //   vy = (-1.0) * (u[i*n+(j+1)]-u[i*n+(j-1)]) * fac / u[i*n+j];
+          //   if (vy > 0) {
+          //     cX[i*n*2+j*2+0] += vy*(-1*X[i*n*2+j*2+0]+X[i*n*2+(j-1)*2+0]);
+          //     cX[i*n*2+j*2+1] += vy*(-1*X[i*n*2+j*2+1]+X[i*n*2+(j-1)*2+1]);
+          //   } else {
+          //     cX[i*n*2+j*2+0] += vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0]);
+          //     cX[i*n*2+j*2+1] += vy*(X[i*n*2+j*2+1]-1*X[i*n*2+(j+1)*2+1]);
+          //   }
+          // }
+
+          // i_cond = ((i>0)&&(i<m-1));
+          // j_cond = ((j+1>0)&&(j+1<n-1));
+          // pos = i*n+j+1;
+          // vx = (-1.0) * (u[pos+n]-u[pos-n]) * fac / u[pos];
+          // vy = (-1.0) * (u[pos+1]-u[pos-1]) * fac / u[pos];
+          // pos = i*n*2+j*2+1;
+          // leqx = (vx > 0);
+          // leqy = (vy > 0);
+          // cX[pos+0] = i_cond*(leqx*vx*(-1*X[pos+0] + X[pos-2*n+0])+(!leqx)*vx*(X[pos+0] - X[pos+2*n+0]));
+          // cX[pos+1] = i_cond*(leqx*vx*(-1*X[pos+1] + X[pos-2*n+1])+(!leqx)*vx*(X[pos+1] - X[pos+2*n+1]));
+          // cX[pos+0] += j_cond*(leqy*vy*(-1*X[pos+0]+X[pos-2+0])+(!leqy)*vy*(X[pos+0]-1*X[pos+2+0]));
+          // cX[pos+1] += j_cond*(leqy*vy*(-1*X[pos+1]+X[pos-2+1])+(!leqy)*vy*(X[pos+1]-1*X[pos+2+1]));
 
         }
 
-        for(; j < y2; j++){
-
-          double vx = 0;
-          double vy = 0;
-          int pos, i_cond, j_cond, leqx, leqy;
-
-          i_cond = ((i>0)&&(i<m-1));
-          j_cond = ((j>0)&&(j<n-1));
-          pos = i*n+j;
-          vx = (-1.0) * (u[pos+n]-u[pos-n]) * fac / u[pos];
-          vy = (-1.0) * (u[pos+1]-u[pos-1]) * fac / u[pos];
-          pos = i*n*2+j*2;
-          leqx = (vx > 0);
-          leqy = (vy > 0);
-          cX[pos+0] = i_cond*(leqx*vx*(-1*X[pos+0] + X[pos-2*n+0])+(!leqx)*vx*(X[pos+0] - X[pos+2*n+0]));
-          cX[pos+1] = i_cond*(leqx*vx*(-1*X[pos+1] + X[pos-2*n+1])+(!leqx)*vx*(X[pos+1] - X[pos+2*n+1]));
-          cX[pos+0] += j_cond*(leqy*vy*(-1*X[pos+0]+X[pos-2+0])+(!leqy)*vy*(X[pos+0]-1*X[pos+2+0]));
-          cX[pos+1] += j_cond*(leqy*vy*(-1*X[pos+1]+X[pos-2+1])+(!leqy)*vy*(X[pos+1]-1*X[pos+2+1]));
-
-        }
+        // for(; j < y2; j++){
+        //
+        //   double vx = 0;
+        //   double vy = 0;
+        //   int pos, i_cond, j_cond, leqx, leqy;
+        //
+        //   i_cond = ((i>0)&&(i<m-1));
+        //   j_cond = ((j>0)&&(j<n-1));
+        //   pos = i*n+j;
+        //   vx = (-1.0) * (u[pos+n]-u[pos-n]) * fac / u[pos];
+        //   vy = (-1.0) * (u[pos+1]-u[pos-1]) * fac / u[pos];
+        //   pos = i*n*2+j*2;
+        //   leqx = (vx > 0);
+        //   leqy = (vy > 0);
+        //   cX[pos+0] = i_cond*(leqx*vx*(-1*X[pos+0] + X[pos-2*n+0])+(!leqx)*vx*(X[pos+0] - X[pos+2*n+0]));
+        //   cX[pos+1] = i_cond*(leqx*vx*(-1*X[pos+1] + X[pos-2*n+1])+(!leqx)*vx*(X[pos+1] - X[pos+2*n+1]));
+        //   cX[pos+0] += j_cond*(leqy*vy*(-1*X[pos+0]+X[pos-2+0])+(!leqy)*vy*(X[pos+0]-1*X[pos+2+0]));
+        //   cX[pos+1] += j_cond*(leqy*vy*(-1*X[pos+1]+X[pos-2+1])+(!leqy)*vy*(X[pos+1]-1*X[pos+2+1]));
+        //
+        // }
       }
 
       #pragma omp parallel for schedule(static) shared(cX, X, n)
@@ -194,14 +221,14 @@ int main(int argc, char *argv[])
     for(int l=0; l < 24; l++){
       step(1, size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt/24.0, &time, u, cu, X, cX, h, ih2, m, n);
     }
-    for(int l=1; l < nsteps;l++){
+    for(int l=1; l < nsteps; l++){
       step(1000, size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt     , &time, u, cu, X, cX, h, ih2, m, n);
     }
 
     t3 = MPI_Wtime();
 
     /* worker node send reference map to master which saves the png */
-    send_receive_save(rank, size, o, X,  x1, y1, x2, y2, m, n);
+    send_receive_save(rank, size, o, X,  x1, y1, x2, y2, m, n, argv[1], argv[4]);
     //print_max_min(size_m,size_n,rank_m,rank_n,u,&time,x1,y1,x2,y2,m,n);
 
     t4 = MPI_Wtime();

@@ -1,4 +1,4 @@
-# C compiler
+M# C compiler
 cxx=gcc
 mpi=mpicc
 

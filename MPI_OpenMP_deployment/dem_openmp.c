@@ -32,7 +32,7 @@ void step(int msteps, int size_m, int size_n, int rank_m, int rank_n, int x1, in
       #pragma omp parallel for schedule(static) shared(fac, u, cX, X, m, n)
       for(int i=x1; i < x2; i++){
         int j;
-        for(j=y1; j < ROUND_DOWN(y2,2); j+=2){
+        for(j=y1; j < y2; j++){
 
           double vx = 0;
           double vy = 0;
@@ -46,45 +46,10 @@ void step(int msteps, int size_m, int size_n, int rank_m, int rank_n, int x1, in
           pos = i*n*2+j*2;
           leqx = (vx > 0);
           leqy = (vy > 0);
-          cX[pos+0] = i_cond*(leqx*vx*(-1*X[pos+0] + X[pos-2*n+0])+(!leqx)*vx*(X[pos+0] - X[pos+2*n+0]));
-          cX[pos+1] = i_cond*(leqx*vx*(-1*X[pos+1] + X[pos-2*n+1])+(!leqx)*vx*(X[pos+1] - X[pos+2*n+1]));
-          cX[pos+0] += j_cond*(leqy*vy*(-1*X[pos+0]+X[pos-2+0])+(!leqy)*vy*(X[pos+0]-1*X[pos+2+0]));
-          cX[pos+1] += j_cond*(leqy*vy*(-1*X[pos+1]+X[pos-2+1])+(!leqy)*vy*(X[pos+1]-1*X[pos+2+1]));
-
-          i_cond = ((i>0)&&(i<m-1));
-          j_cond = ((j+1>0)&&(j+1<n-1));
-          pos = i*n+j+1;
-          vx = (-1.0) * (u[pos+n]-u[pos-n]) * fac / u[pos];
-          vy = (-1.0) * (u[pos+1]-u[pos-1]) * fac / u[pos];
-          pos = i*n*2+j*2+1;
-          leqx = (vx > 0);
-          leqy = (vy > 0);
-          cX[pos+0] = i_cond*(leqx*vx*(-1*X[pos+0] + X[pos-2*n+0])+(!leqx)*vx*(X[pos+0] - X[pos+2*n+0]));
-          cX[pos+1] = i_cond*(leqx*vx*(-1*X[pos+1] + X[pos-2*n+1])+(!leqx)*vx*(X[pos+1] - X[pos+2*n+1]));
-          cX[pos+0] += j_cond*(leqy*vy*(-1*X[pos+0]+X[pos-2+0])+(!leqy)*vy*(X[pos+0]-1*X[pos+2+0]));
-          cX[pos+1] += j_cond*(leqy*vy*(-1*X[pos+1]+X[pos-2+1])+(!leqy)*vy*(X[pos+1]-1*X[pos+2+1]));
-
-        }
-
-        for(; j < y2; j++){
-
-          double vx = 0;
-          double vy = 0;
-          int pos, i_cond, j_cond, leqx, leqy;
-
-          i_cond = ((i>0)&&(i<m-1));
-          j_cond = ((j>0)&&(j<n-1));
-          pos = i*n+j;
-          vx = (-1.0) * (u[pos+n]-u[pos-n]) * fac / u[pos];
-          vy = (-1.0) * (u[pos+1]-u[pos-1]) * fac / u[pos];
-          pos = i*n*2+j*2;
-          leqx = (vx > 0);
-          leqy = (vy > 0);
-          cX[pos+0] = i_cond*(leqx*vx*(-1*X[pos+0] + X[pos-2*n+0])+(!leqx)*vx*(X[pos+0] - X[pos+2*n+0]));
-          cX[pos+1] = i_cond*(leqx*vx*(-1*X[pos+1] + X[pos-2*n+1])+(!leqx)*vx*(X[pos+1] - X[pos+2*n+1]));
-          cX[pos+0] += j_cond*(leqy*vy*(-1*X[pos+0]+X[pos-2+0])+(!leqy)*vy*(X[pos+0]-1*X[pos+2+0]));
-          cX[pos+1] += j_cond*(leqy*vy*(-1*X[pos+1]+X[pos-2+1])+(!leqy)*vy*(X[pos+1]-1*X[pos+2+1]));
-
+          cX[pos+0] = i_cond  * (leqx*vx*(-1*X[pos+0] + X[pos-2*n+0]) + (!leqx) * vx * (X[pos+0] - X[pos+2*n+0]));
+          cX[pos+1] = i_cond  * (leqx*vx*(-1*X[pos+1] + X[pos-2*n+1]) + (!leqx) * vx * (X[pos+1] - X[pos+2*n+1]));
+          cX[pos+0] += j_cond * (leqy*vy*(-1*X[pos+0] + X[pos-2+0])   + (!leqy) * vy * (X[pos+0]-1*X[pos+2+0]));
+          cX[pos+1] += j_cond * (leqy*vy*(-1*X[pos+1] + X[pos-2+1])   + (!leqy) * vy * (X[pos+1]-1*X[pos+2+1]));
         }
       }
 
@@ -191,17 +156,19 @@ int main(int argc, char *argv[])
     /*  Perform the integration timesteps, using the smaller dt for the first
     few steps to deal with the large velocities that initially occur. */
     double time = 0;
-    for(int l=0; l < 24; l++){
+    int l;
+    for(l=0; l < 24; l++){
       step(1, size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt/24.0, &time, u, cu, X, cX, h, ih2, m, n);
     }
-    for(int l=1; l < nsteps;l++){
+    for(l=0; l < (int)((nsteps-1)/1000); l++){
       step(1000, size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt     , &time, u, cu, X, cX, h, ih2, m, n);
     }
+    step(nsteps-l*1000-1, size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt     , &time, u, cu, X, cX, h, ih2, m, n);
 
     t3 = MPI_Wtime();
 
     /* worker node send reference map to master which saves the png */
-    send_receive_save(rank, size, o, X,  x1, y1, x2, y2, m, n);
+    send_receive_save(rank, size, o, X,  x1, y1, x2, y2, m, n, argv[1], argv[4]);
     //print_max_min(size_m,size_n,rank_m,rank_n,u,&time,x1,y1,x2,y2,m,n);
 
     t4 = MPI_Wtime();

@@ -19,7 +19,7 @@ Output file:      -dens_eq.png
 #include <omp.h>
 
 // Number of states/entities to calculates:
-#define SIZE 50//3142
+#define SIZE 3142
 
 /** helper functions (which are not needed in python prototype version). */
 
@@ -227,7 +227,7 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
       maxU = maxU > u[i] ? maxU : u[i];
     }
 
-    //printf("%f, %f, %f \n", *time, minU, maxU);
+    printf("%f, %f, %f \n", *time, minU, maxU);
 }
 
 /** Main program for density equalizing map projections. */
@@ -239,7 +239,7 @@ int main(void)
     double tstart=omp_get_wtime(), tend;
 
     // Read in the color values for each state. 
-    char const* const fileName = "colchart.txt"; //"colchart_counties.txt";
+    char const* const fileName = "colchart_counties.txt"; //"colchart_counties.txt";
     FILE* file = fopen(fileName, "r");
     char line[256];
     int d[SIZE] = {0};
@@ -326,7 +326,7 @@ int main(void)
     //}
 
     // Reads in the undeformed US map.
-    read_png_file("usa_vs.png");//"uscounties.png");
+    read_png_file("uscounties.png");//"uscounties.png");
     //get_time(&tend);
     tend = omp_get_wtime();
     printf("Elapsed time load data: %f s\n", tend-tstart); //timespec_diff(tstart, tend));
@@ -368,9 +368,9 @@ int main(void)
           npts+=1;
         }
         else if(co != 16777215){
-          printf("Mayday Mayday, we are aborting! Index=%d and Co=%d\n",index,co);
-          printf("i=%d\tj=%d\n",i,j);
-          abort();
+          //printf("Mayday Mayday, we are aborting! Index=%d and Co=%d\n",index,co);
+          printf("i=%d\tj=%d\t%d\n",i,j,co);
+          //abort();
         }
       }
     }
@@ -429,7 +429,7 @@ int main(void)
     for(int l=0; l < 24; l++){
       step(dt/24.0, &time, u, cu, X, cX, h, ih2);
     }
-    //nsteps=2000;
+    nsteps=100;
     for(int l=1; l < nsteps;l++){
       step(dt, &time, u, cu, X, cX, h, ih2);
     }
@@ -497,7 +497,7 @@ int main(void)
 
     //get_time(&tstart);
     tstart = omp_get_wtime();
-    write_png_file("dens_eq_vs.png");
+    write_png_file("dens_eq_cty.png");
     //get_time(&tend);
     tend = omp_get_wtime();
     printf("Elapsed time saving: %f s\n", tend-tstart); //timespec_diff(tstart, tend));

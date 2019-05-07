@@ -103,18 +103,18 @@ void step(double dt, double *time, double *u, double *cu, double *X, double *cX,
 
 
 /** Main program for density equalizing map projections. */
-int main(void)
+int main(int argc, char *argv[])
 {
 
     /* Read in the undeformed US map. */
     int m, n; int *o;
-    o = read_map("uscounties20.png", &m, &n);
+    o = read_map(argv[1], &m, &n);
 
 
     /* Get density data from image and color bar code */
     double *u = (double*)malloc(m*n * sizeof(double));
     double *cu = (double*)malloc(m*n * sizeof(double));
-    image_to_density_map(o, u, "colchart_counties.txt", "den_per_county.txt", SIZE, 0);
+    image_to_density_map(o, u, argv[2], argv[3], SIZE, 0);
 
     /** Grid spacing. */
     double h   = 1.0;
@@ -148,7 +148,10 @@ int main(void)
       step(dt,      &time, u, cu, X, cX, h, ih2, m, n);
     }
 
-    save_map(o, X);
+    printf("X value 0: %f\n", X[100*n*2+100*2+0]);
+    printf("X value 1: %f\n", X[100*n*2+100*2+1]);
+
+    save_map(o, X, argv[1], argv[4]);
 
     return 0;
 
