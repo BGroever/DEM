@@ -55,3 +55,4 @@ dkms.conf
 
 # output files
 dens_eq.png
+.ipynb_checkpoints

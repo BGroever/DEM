@@ -15,15 +15,25 @@ and installed on Mac OSX as:
 ```Bash
 brew install libpng
 ```
-
-The diff_map2.c can be compiled using the command:
+## MPI and OpenMP
+The code can be compiled using the command:
 ```Bash
 make
 ```
-and run as:
+This will generate the serial, the MPI and the hybrid executables. The hybrid executable run for the US county image as:
 ```Bash
-mpirun -np 2 -hosts master,node1 -genv OMP_NUM_THREADS 2 ./exec.openmp
+mpirun -np 2 -hosts master,node1 -genv OMP_NUM_THREADS 2 ./exec.openmp "uscounties10.png" "col_counties.txt" "counties.txt" "ouput.png"
 ```
+and similary for the USA state map as:
+```Bash
+mpirun -np 2 -hosts master,node1 -genv OMP_NUM_THREADS 2 ./exec.openmp "usa10.png" "col_state.txt" "states.txt" "ouput.png"
+```
+The files 'openmp.sh' and 'mpi.sh' generate the speedup diagram on Odyssey with the command:
+```Bash
+sbatch openmp.sh
+```
+
+## CUDA
 
 
 # Acknowledgement
