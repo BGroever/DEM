@@ -1,7 +1,7 @@
 from skimage import io
 import numpy as np
 
-o=io.imread("dens_eq_gpu.png")
+o=io.imread("uscounties20.png")
 (m,n,z)=o.shape
 
 dict_fips = {}
@@ -33,9 +33,18 @@ for i in range(m):
         elif dict_fips[co] in dict_no.keys():
             no[i,j,:-1] = dict_no[dict_fips[co]]
             no[i,j,3] = 255
+        elif dict_fips[co]==15005:
+            no[i,j,:-1] = dict_no[15009]
+            no[i,j,3] = 255
+        elif dict_fips[co]==2158:
+            no[i,j,0] = 255
+            no[i,j,1] = 255
+            no[i,j,2] = 255
+            no[i,j,3] = 255
+
         else:
             if dict_fips[co] not in badfps:
                 badfps.append(dict_fips[co])
 
 print(badfps)
-io.imsave("final_map.png",no)
+io.imsave("initial_map20.png",no)
