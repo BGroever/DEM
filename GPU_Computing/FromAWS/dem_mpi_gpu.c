@@ -17,7 +17,7 @@ Output file:      -dens_eq.png
 #include <mpi.h>
 
 // Number of states/entities to calculates:
-#define SIZE 50
+#define SIZE 3142
 
 /** Function to integrate the density and reference map fields forward in time by dt. */
 void step(int size_m, int size_n, int rank_m, int rank_n, int x1, int y1, int x2, int y2, double dt, double *time, double *u, double *cu, double *X, double *cX, double h, double ih2, int m, int n) {
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 
     /* Read in the undeformed US map. */
     int m, n; int *o;
-    o = read_map("usa_vs.png", &m, &n);
+    o = read_map("uscounties10.png", &m, &n);
 
     /* Get subimage boundaries of process and print diagnostic MPI messages */
     int  x1, y1, x2, y2;
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
     /* Get density data from quantity of interest data and color bar codes */
     double *u = malloc(m*n * sizeof(double));
     double *cu = malloc(m*n * sizeof(double));
-    image_to_density_map(o, u, "colchart.txt", "density.txt", SIZE, rank);
+    image_to_density_map(o, u, "colchart_counties.txt", "year2014SEP.txt", SIZE, rank);
 
     /** Grid spacing. */
     double h   = 1.00;
@@ -143,6 +143,7 @@ int main(int argc, char *argv[])
     few steps to deal with the large velocities that initially occur. */
     double time = 0;
     cuda_iter(size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt/24.0, &time, u, cu, X, cX, h, ih2, m, n, 24);
+//    nsteps=10;
     cuda_iter(size_m, size_n, rank_m, rank_n, x1, y1, x2, y2, dt, &time, u, cu, X, cX, h, ih2, m, n, nsteps);
 
 /*
