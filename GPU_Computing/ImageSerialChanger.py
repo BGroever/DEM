@@ -2,8 +2,8 @@ from skimage import io
 import numpy as np
 import os
 
-idir = 'Snapshots10'
-fdir = 'Snapshots10uselections'
+idir = 'Snapshots30'
+fdir = 'Snapshots30uselections'
 
 dict_fips = {}
 dict_no = {}

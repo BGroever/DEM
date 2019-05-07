@@ -50,6 +50,12 @@ plt.savefig('SpeedupVsThreads.png')
 
 sizeN = [20400,82560,185760,330240,516000,743040,1320960,2064000]
 etime = [2.18476,7.498288,26.764,77.167,179.900253,365.85,1134.63615,2773.71]
+
+cpuN = [168300, 185800, 330200]
+eN = [124, 170, 537]
+
+
+
 lsN = [np.log(itm) for itm in sizeN]
 let = [np.log(itm) for itm in etime]
 
@@ -59,6 +65,7 @@ xax = np.linspace(sizeN[0]-3000,sizeN[-1]+200000,200)
 yay = [np.exp(a*np.log(itm)+b) for itm in xax]
 fig, ax = plt.subplots(figsize = (8,6))
 ax.loglog(sizeN,etime, 'o', color='#bc0505',alpha=0.7, label="Datapoints")
+ax.loglog(cpuN, eN, 'o', color = '#3e83f2', alpha=0.8, label='CPU')
 ax.loglog(xax,yay, '-', color='#07af1a',alpha=0.8, label = r"$ax+b$, with $a\simeq 1.97$")
 plt.xlabel("Total number of pixels",fontsize=14)
 plt.ylabel("Execution Time",fontsize=14)
