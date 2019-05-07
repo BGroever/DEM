@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
     /* Get density data from quantity of interest data and color bar codes */
     double *u = malloc(m*n * sizeof(double));
     double *cu = malloc(m*n * sizeof(double));
-    image_to_density_map(o, u, "colchart_counties.txt", "year2014SEP.txt", SIZE, rank);
+    image_to_density_map(o, u, "colchart_counties.txt", "year1980.txt", SIZE, rank);
 
     /** Grid spacing. */
     double h   = 1.00;
