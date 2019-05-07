@@ -235,7 +235,7 @@ void image_to_density_map(int* o, double* u, char* colorfile, char* densityFile,
                 strcat(na, a[2]);
             }
             int m = getStringIndex(c, na, numentities);
-            rh[m] = atoll(a[0]);
+            rh[m] = atof(a[0]);
         }
 
         /** TESTING
