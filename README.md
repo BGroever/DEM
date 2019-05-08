@@ -22,11 +22,10 @@ make
 ```
 This will generate the serial, the MPI and the hybrid executables. The hybrid executable run for the US county image as:
 ```Bash
-mpirun -np 2 -genv OMP_NUM_THREADS 2 ./exec.openmp "uscounties10.png" "col_counties.txt" "counties.txt" "ouput.png"
-```
-and similary for the USA state map as:
-```Bash
-mpirun -np 2 -genv OMP_NUM_THREADS 2 ./exec.openmp "usa10.png" "col_state.txt" "states.txt" "ouput.png"
+threads=4
+task=2
+export OMP_NUM_THREADS=$threads;
+mpirun -np $tasks -genv OMP_NUM_THREADS $threads ./exec.openmp "uscounties10.png" "col_counties.txt" "counties.txt" "output.png"
 ```
 The files `openmp.sh` and `openmp.sh` generate the MPI/OpenMP speedup diagram on Odyssey with the command:
 ```Bash
