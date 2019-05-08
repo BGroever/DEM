@@ -340,4 +340,6 @@ void save_map(int* o, double* X, char* pngfile, char* outputfile){
       }
 
       write_png_file(outputfile);
+
+      free(o2);
 }

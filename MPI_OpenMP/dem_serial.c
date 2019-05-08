@@ -153,6 +153,11 @@ int main(int argc, char *argv[])
 
     save_map(o, X, argv[1], argv[4]);
 
+    free(u);
+    free(cu);
+    free(X);
+    free(cX);
+
     return 0;
 
 }
