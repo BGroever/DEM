@@ -64,7 +64,7 @@ year2004 = cleanRDD.filter(lambda x: x[2] == '2004').map(lambda x: (str(int(x[1]
 mean2004 = year2004.map(lambda x: x[1]).mean()
 
 # to get ALL counties
-join2004 = year2004.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(x[0] +' '+ str(yearMean(mean2004, list(x[1])[0]))))
+join2004 = year2004.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(str(yearMean(mean2004, list(x[1])[0])) + ' ' + x[0]))
 #-------------------
 
 
@@ -75,7 +75,7 @@ year2005 = cleanRDD.filter(lambda x: x[2] == '2005').map(lambda x: (str(int(x[1]
 mean2005 = year2005.map(lambda x: x[1]).mean()
 
 # to get ALL counties
-join2005 = year2005.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(x[0] +' '+ str(yearMean(mean2005, list(x[1])[0]))))
+join2005 = year2005.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(str(yearMean(mean2005, list(x[1])[0])) + ' ' + x[0]))
 #-------------------
 
 
@@ -86,7 +86,7 @@ year2006 = cleanRDD.filter(lambda x: x[2] == '2006').map(lambda x: (str(int(x[1]
 mean2006 = year2006.map(lambda x: x[1]).mean()
 
 # to get ALL counties
-join2006 = year2006.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(x[0] +' '+ str(yearMean(mean2006, list(x[1])[0]))))
+join2006 = year2006.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(str(yearMean(mean2006, list(x[1])[0])) + ' ' + x[0]))
 #-------------------
 
 
@@ -97,7 +97,7 @@ year2007 = cleanRDD.filter(lambda x: x[2] == '2007').map(lambda x: (str(int(x[1]
 mean2007 = year2007.map(lambda x: x[1]).mean()
 
 # to get ALL counties
-join2007 = year2007.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(x[0] +' '+ str(yearMean(mean2007, list(x[1])[0]))))
+join2007 = year2007.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(str(yearMean(mean2007, list(x[1])[0])) + ' ' + x[0]))
 #-------------------
 
 
@@ -108,7 +108,7 @@ year2008 = cleanRDD.filter(lambda x: x[2] == '2008').map(lambda x: (str(int(x[1]
 mean2008 = year2008.map(lambda x: x[1]).mean()
 
 # to get ALL counties
-join2008 = year2008.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(x[0] +' '+ str(yearMean(mean2008, list(x[1])[0]))))
+join2008 = year2008.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(str(yearMean(mean2008, list(x[1])[0])) + ' ' + x[0]))
 #-------------------
 
 
@@ -119,7 +119,7 @@ year2009 = cleanRDD.filter(lambda x: x[2] == '2009').map(lambda x: (str(int(x[1]
 mean2009 = year2009.map(lambda x: x[1]).mean()
 
 # to get ALL counties
-join2009 = year2009.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(x[0] +' '+ str(yearMean(mean2009, list(x[1])[0]))))
+join2009 = year2009.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(str(yearMean(mean2009, list(x[1])[0])) + ' ' + x[0]))
 #-------------------
 
 
@@ -130,7 +130,7 @@ year2010 = cleanRDD.filter(lambda x: x[2] == '2010').map(lambda x: (str(int(x[1]
 mean2010 = year2010.map(lambda x: x[1]).mean()
 
 # to get ALL counties
-join2010 = year2010.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(x[0] +' '+ str(yearMean(mean2010, list(x[1])[0]))))
+join2010 = year2010.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(str(yearMean(mean2010, list(x[1])[0])) + ' ' + x[0]))
 #-------------------
 
 
@@ -141,7 +141,7 @@ year2011 = cleanRDD.filter(lambda x: x[2] == '2011').map(lambda x: (str(int(x[1]
 mean2011 = year2011.map(lambda x: x[1]).mean()
 
 # to get ALL counties
-join2011 = year2011.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(x[0] +' '+ str(yearMean(mean2011, list(x[1])[0]))))
+join2011 = year2011.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(str(yearMean(mean2011, list(x[1])[0])) + ' ' + x[0]))
 #-------------------
 
 
@@ -152,7 +152,7 @@ year2012 = cleanRDD.filter(lambda x: x[2] == '2012').map(lambda x: (str(int(x[1]
 mean2012 = year2012.map(lambda x: x[1]).mean()
 
 # to get ALL counties
-join2012 = year2012.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(x[0] +' '+ str(yearMean(mean2012, list(x[1])[0]))))
+join2012 = year2012.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(str(yearMean(mean2012, list(x[1])[0])) + ' ' + x[0]))
 #-------------------
 
 
@@ -163,7 +163,7 @@ year2013 = cleanRDD.filter(lambda x: x[2] == '2013').map(lambda x: (str(int(x[1]
 mean2013 = year2013.map(lambda x: x[1]).mean()
 
 # to get ALL counties
-join2013 = year2013.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(x[0] +' '+ str(yearMean(mean2013, list(x[1])[0]))))
+join2013 = year2013.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(str(yearMean(mean2013, list(x[1])[0])) + ' ' + x[0]))
 #-------------------
 
 
@@ -174,7 +174,7 @@ year2014 = cleanRDD.filter(lambda x: x[2] == '2014').map(lambda x: (str(int(x[1]
 mean2014 = year2014.map(lambda x: x[1]).mean()
 
 # to get ALL counties
-join2014 = year2014.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(x[0] +' '+ str(yearMean(mean2014, list(x[1])[0]))))
+join2014 = year2014.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(str(yearMean(mean2014, list(x[1])[0])) + ' ' + x[0]))
 #-------------------
 
 
@@ -185,8 +185,9 @@ year2015 = cleanRDD.filter(lambda x: x[2] == '2015').map(lambda x: (str(int(x[1]
 mean2015 = year2015.map(lambda x: x[1]).mean()
 
 # to get ALL counties
-join2015 = year2015.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(x[0] +' '+ str(yearMean(mean2015, list(x[1])[0]))))
+join2015 = year2015.union(allCounties).groupByKey().filter(lambda x: (x[0] != rmCty[0]) and (x[0] != rmCty[1])).map(lambda x: str(str(yearMean(mean2015, list(x[1])[0])) + ' ' + x[0]))
 #-------------------
+
 
 map2 = time.time()
 totMap = map2-map1
