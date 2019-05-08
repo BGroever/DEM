@@ -35,7 +35,28 @@ The standard output will be `mpi.out` and `openmp.out` respectively. If you want
 
 ## CUDA
 
+The GPU-friendly cuda code is located in the `GPU`. The system requirements are given in the CS205 Team7 PDF report submitted on Tuesday, May 7, 2019. The code can be compiled on a GPU instance using the linux command:
+
+```Bash
+make
+```
+
+And can be run with :
+
+```Bash
+./exe_gpu.x
+```
+
+The name of the 3 input files are located in the `dem_mpi_gpu.c` : `uscounties10.png`, `den_per_county.txt`,`colchart_counties.txt`. For this configuration, the `SIZE` variable needs to be equal to 3142. If one wants to change the input files, the new files need to be located locally in this folder.
+
+This folder can be cleaned using the following linux command:
+
+```Bash
+make clean
+```
 
 # Acknowledgement
 
 The code for the two functions `write_png_file()` and `read_png_file()` were scavenged from another [Github site](https://gist.github.com/niw/5963798).
+
+
