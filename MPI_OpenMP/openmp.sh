@@ -21,11 +21,10 @@ make
 #srun -n $SLURM_NTASKS --cpus-per-task=$SLURM_CPUS_PER_TASK --mpi=pmi2 ./exec.openmp
 
 # Run program
-for i in 7
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 do
     echo "Number of MPI processes: ${i}"
     export OMP_NUM_THREADS=${i}
-    srun -n 1 --cpus-per-task=${i} --mpi=pmi2 ./exec.openmp
+    srun -n 1 --cpus-per-task=${i} --mpi=pmi2 ./exec.openmp "uscounties10.png" "col_counties.txt" "counties.txt" "output.png"
     echo " "
 done
-

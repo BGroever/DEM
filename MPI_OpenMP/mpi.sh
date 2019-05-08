@@ -25,7 +25,6 @@ for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 do
     echo "Number of MPI processes: ${i}"
     export OMP_NUM_THREADS=1
-    srun -n ${i} --cpus-per-task=1 --mpi=pmi2 ./exec.openmp
+    srun -n ${i} --cpus-per-task=1 --mpi=pmi2 ./exec.openmp "uscounties10.png" "col_counties.txt" "counties.txt" "output.png"
     echo " "
 done
-

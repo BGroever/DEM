@@ -27,10 +27,11 @@ task=2
 export OMP_NUM_THREADS=$threads;
 mpirun -np $tasks -genv OMP_NUM_THREADS $threads ./exec.openmp "uscounties10.png" "col_counties.txt" "counties.txt" "output.png"
 ```
-The files `openmp.sh` and `openmp.sh` generate the MPI/OpenMP speedup diagram on Odyssey with the command:
+The files `openmp.sh` and `mpi.sh` generate the MPI/OpenMP speedup diagram on Odyssey with the command:
 ```Bash
 sbatch openmp.sh
 ```
+The standard output will be `mpi.out` and `openmp.out` respectively. If you want to run a different data set beside US counties you need change the SIZE on top of the main file `dem_openmp.c`.
 
 ## CUDA
 
