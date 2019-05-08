@@ -54,11 +54,8 @@ extern "C" void cuda_iter(int size_m, int size_n, int rank_m, int rank_n, int x1
 
     double nu = dt/(h*h);
     double fac = ih2*dt/h;
-//    double vx = 0;
-//    double vy = 0;
     double params[2]={nu,fac};
     int indices[6] = {m,n,x1,x2,y1,y2};
-//    int i_cond, j_cond;
     double *d_u, *d_cu, *d_X, *d_cX, *d_params;
     int *d_indices;
 
@@ -70,33 +67,7 @@ extern "C" void cuda_iter(int size_m, int size_n, int rank_m, int rank_n, int x1
     HANDLE_ERROR(cudaMalloc((void**)&d_indices, sizeof(int)*6));
 
     /** Calculate the upwinded update for the reference map. */
-/*    double vx = 0;
-    double vy = 0;
-    int i_cond=0, j_cond=0;
-    for(int i=x1; i < x2; i++){
-      for(int j=y1; j < y2; j++){
-        vx = (-1.0) * (u[(i+1)*n+j]-u[(i-1)*n+j]) * fac / u[i*n+j];
-        vy = (-1.0) * (u[i*n+(j+1)]-u[i*n+(j-1)]) * fac / u[i*n+j];
-	i_cond = ((i>0)&&(i<m-1));
-	j_cond = ((j>0)&&(j<n-1));
-        cX[i*n*2+j*2+0]	= i_cond*((vx>0) *vx*(-1*X[i*n*2+j*2+0]+X[(i-1)*n*2+j*2+0])
-			       +(!(vx>0))*vx*( X[i*n*2+j*2+0] - X[(i+1)*n*2+j*2+0]))
-			 +j_cond*((vy>0) *vy*(-1*X[i*n*2+j*2+0]+X[i*n*2+(j-1)*2+0])
-			       +(!(vy>0))*vy*(X[i*n*2+j*2+0]-1*X[i*n*2+(j+1)*2+0]));		
-        cX[i*n*2+j*2+1] = i_cond*((vx>0) *vx*(-1*X[i*n*2+j*2+1] + X[(i-1)*n*2+j*2+1])
-			       +(!(vx>0))*vx*(   X[i*n*2+j*2+1] - X[(i+1)*n*2+j*2+1]))
-			 +j_cond*((vy>0) *vy*(-1*X[i*n*2+j*2+1]+X[i*n*2+(j-1)*2+1])
-			       +(!(vy>0))*vy*(X[i*n*2+j*2+1]-1*X[i*n*2+(j+1)*2+1]));
-      }
-    }
     
-    for(int i=x1; i < x2; i++){
-      for(int j=y1; j < y2; j++){
-        X[i*n*2+j*2+0] += cX[i*n*2+j*2+0];
-        X[i*n*2+j*2+1] += cX[i*n*2+j*2+1];
-      }
-    }
-*/    
     HANDLE_ERROR(cudaMemcpy(d_u,   u,   m*n*sizeof(double), cudaMemcpyHostToDevice));
     HANDLE_ERROR(cudaMemcpy(d_cu, cu,   m*n*sizeof(double), cudaMemcpyHostToDevice));
     HANDLE_ERROR(cudaMemcpy(d_X,   X, 2*m*n*sizeof(double), cudaMemcpyHostToDevice));
@@ -105,28 +76,13 @@ extern "C" void cuda_iter(int size_m, int size_n, int rank_m, int rank_n, int x1
     HANDLE_ERROR(cudaMemcpy(d_indices, indices, 6*sizeof(int), cudaMemcpyHostToDevice));
     for(int l=1;l<nsteps;l++){
     update_cXX<<<ceil(float(m*n)/float(N_THREADS)),N_THREADS>>>(d_u,d_cu,d_X,d_cX,d_params,d_indices);
-    //update_cXX<<<m*n,1>>>(d_u,d_cu,d_X,d_cX,d_params,d_indices);
-/*    
-    HANDLE_ERROR(cudaMemcpy(u,  d_u , m*n*sizeof(double), cudaMemcpyDeviceToHost));
-    HANDLE_ERROR(cudaMemcpy(cu, d_cu, m*n*sizeof(double), cudaMemcpyDeviceToHost));
-    HANDLE_ERROR(cudaMemcpy(X,  d_X , 2*m*n*sizeof(double), cudaMemcpyDeviceToHost));
-    HANDLE_ERROR(cudaMemcpy(cX, d_cX, 2*m*n*sizeof(double), cudaMemcpyDeviceToHost));
-    HANDLE_ERROR(cudaMemcpy(params, d_params, 2*sizeof(double), cudaMemcpyDeviceToHost));
-    HANDLE_ERROR(cudaMemcpy(indices, d_indices, 6*sizeof(int), cudaMemcpyDeviceToHost));
+   
 
-    HANDLE_ERROR(cudaMemcpy(d_u, u, m*n*sizeof(double), cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMemcpy(d_cu, cu, m*n*sizeof(double), cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMemcpy(d_X, X, 2*m*n*sizeof(double), cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMemcpy(d_cX, cX, 2*m*n*sizeof(double), cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMemcpy(d_params, params, 2*sizeof(double), cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMemcpy(d_indices, indices, 6*sizeof(int), cudaMemcpyHostToDevice));
-*/
     /* MPI updating neighbour pixels */
     	//ghost_exchange_X(size_m, size_n, rank_m, rank_n, X, x1, y1, x2, y2, m, n);
 
     /* Do the finite-difference update */
     	update_u<<<ceil(float(m*n)/float(N_THREADS)),N_THREADS>>>(d_u, d_cu,d_params,d_indices);
-    //update_u<<<n*m,1>>>(d_u, d_cu,d_params,d_indices);
     }
     HANDLE_ERROR(cudaMemcpy(u,  d_u , m*n*sizeof(double), cudaMemcpyDeviceToHost));
     HANDLE_ERROR(cudaMemcpy(cu, d_cu, m*n*sizeof(double), cudaMemcpyDeviceToHost));
@@ -140,7 +96,6 @@ extern "C" void cuda_iter(int size_m, int size_n, int rank_m, int rank_n, int x1
 
     /* Print the current time and the extremal values of density */
     *time += dt;
-    //print_max_min(size_m,size_n,rank_m,rank_n,u,time,x1,y1,x2,y2,m,n);
     cudaFree(d_u);
     cudaFree(d_cu);
     cudaFree(d_X);

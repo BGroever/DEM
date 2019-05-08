@@ -3,7 +3,7 @@ cxx=gcc-8
 nxx=nvcc
 
 # Compilation flags
-cflags=-fopenmp -pedantic -Wall -O3 -I/usr/local/include -L/usr/local/lib -L/home/ubuntu/mpich/mpich2/lib #-DUSE_CLOCK
+cflags=-fopenmp -pedantic -Wall -O3 -I/usr/local/include -L/usr/local/lib -L/home/ubuntu/mpich/mpich2/lib 
 gflags=-ccbin=mpic++ -arch=sm_50
 
 # Flags for PNG library
