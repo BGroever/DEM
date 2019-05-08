@@ -34,7 +34,7 @@ sbatch openmp.sh
 
 ## CUDA
 
-The GPU-friendly cuda code is located in the GPU\_compute. The system requirements are given in the CS205 Team7 PDF report submitted on Tuesday, May 7, 2019. The code can be compiled on a GPU instance using the linux command:
+The GPU-friendly cuda code is located in the `GPU`. The system requirements are given in the CS205 Team7 PDF report submitted on Tuesday, May 7, 2019. The code can be compiled on a GPU instance using the linux command:
 
 ```Bash
 make
